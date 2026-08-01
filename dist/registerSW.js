@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/FinVault/sw.js', { scope: '/FinVault/' })})}

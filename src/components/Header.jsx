@@ -61,7 +61,7 @@ const Header = () => {
   return (
     <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', position: 'relative', zIndex: 100 }}>
       <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: 'inherit' }}>
-        <img src="/logo.png" alt="FinVault Logo" className="header-logo" style={{width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover'}} />
+        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="FinVault Logo" className="header-logo" style={{width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover'}} />
         <h1 style={{margin: 0, fontSize: '24px'}}>FinVault</h1>
       </NavLink>
       

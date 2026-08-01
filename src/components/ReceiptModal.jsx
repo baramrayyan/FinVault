@@ -6,30 +6,40 @@ import './ReceiptModal.css';
 const ReceiptModal = ({ transactions, formatCurrency, onClose }) => {
   const handleDownload = () => {
     const element = document.getElementById('receipt-printable-area');
-    const modal = document.querySelector('.receipt-modal');
-    const previewContainer = document.querySelector('.receipt-preview-container');
     
-    // Save original styles
-    const origModalMaxHeight = modal.style.maxHeight;
-    const origPreviewOverflow = previewContainer.style.overflowY;
-    
-    // Expand to prevent html2canvas clipping
-    modal.style.maxHeight = 'none';
-    previewContainer.style.overflowY = 'visible';
+    // Create a temporary clone wrapped in a fixed-size container at the top of the body
+    const clone = element.cloneNode(true);
+    const container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.top = '0';
+    container.style.left = '0';
+    container.style.width = '800px';
+    container.style.background = 'white';
+    container.style.zIndex = '-9999';
+    container.appendChild(clone);
+    document.body.appendChild(container);
+
+    // Save scroll position and scroll to top
+    const originalScrollY = window.scrollY;
+    window.scrollTo(0, 0);
 
     const opt = {
       margin:       0.5,
       filename:     `FinVault_Receipt_${new Date().toISOString().split('T')[0]}.pdf`,
       image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true,
+        scrollY: 0,
+        windowWidth: 800
+      },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
       pagebreak:    { mode: ['css', 'legacy'] }
     };
 
-    html2pdf().set(opt).from(element).save().then(() => {
-      // Restore original styles
-      modal.style.maxHeight = origModalMaxHeight;
-      previewContainer.style.overflowY = origPreviewOverflow;
+    html2pdf().set(opt).from(container).save().then(() => {
+      document.body.removeChild(container);
+      window.scrollTo(0, originalScrollY);
     });
   };
 
@@ -45,7 +55,7 @@ const ReceiptModal = ({ transactions, formatCurrency, onClose }) => {
         <div className="receipt-preview-container">
           <div id="receipt-printable-area" className="realistic-receipt">
             <div className="receipt-header">
-              <img src="/logo.png" alt="FinVault Logo" className="receipt-logo" />
+              <img src={`${import.meta.env.BASE_URL}logo.png`} alt="FinVault Logo" className="receipt-logo" />
               <h2>FINVAULT OFFICIAL RECEIPT</h2>
               <p>Date: {new Date().toLocaleString()}</p>
               <p>Transactions: {transactions.length}</p>

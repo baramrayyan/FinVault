@@ -5,8 +5,8 @@
   "homepage": "https://baramrayyan.github.io/FinVault",
   "type": "module",
   "scripts": {
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist",
+    "test": "npm run build && gh-pages -d dist",
+    "deploy": "git add . && git commit -m \"Auto-deploy update\" && git push origin main && npm run test",
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
