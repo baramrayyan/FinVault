@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
-// TODO: Replace this with your actual Firebase project configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCvTRSukFQet7oS6cG6C92orZXeL5deB2E",
   authDomain: "money-manager-a70e0.firebaseapp.com",
@@ -12,6 +12,6 @@ const firebaseConfig = {
   measurementId: "G-LTXFDJ4BNG"
 };
 
-
 const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
+export const auth = getAuth(app);

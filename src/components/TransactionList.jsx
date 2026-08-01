@@ -58,7 +58,7 @@ const TransactionList = () => {
     <div className="transaction-list-container">
       <div className="history-header">
         <h2 className="section-title">Recent Transactions</h2>
-        <div style={{display: 'flex', gap: '8px', alignItems: 'center'}}>
+        <div style={{display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap'}}>
           <div className="custom-dropdown-container" ref={sortRef}>
             <div 
               className="custom-dropdown-trigger glass-panel" 

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { collection, getDocs, addDoc, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { collection, getDocs, addDoc, doc, setDoc, deleteDoc, onSnapshot, query, where } from 'firebase/firestore';
+import { useAuth } from './AuthContext';
 import { db } from '../firebase';
 
 const FinanceContext = createContext();
@@ -11,6 +12,7 @@ const DEFAULT_CATEGORIES = {
 };
 
 export const FinanceProvider = ({ children }) => {
+  const { currentUser } = useAuth();
   const [transactions, setTransactions] = useState([]);
   const [debts, setDebts] = useState([]);
   const [sideAccounts, setSideAccounts] = useState([]);
@@ -39,33 +41,41 @@ export const FinanceProvider = ({ children }) => {
 
     const setupListeners = () => {
       try {
+        if (!currentUser) {
+          setTransactions([]);
+          setDebts([]);
+          setSideAccounts([]);
+          setSideAccountTxs([]);
+          setLoading(false);
+          return;
+        }
         if (db.app.options.apiKey === "YOUR_API_KEY") {
           console.warn("Using mock data.");
           setLoading(false);
           return;
         }
 
-        unsubTransactions = onSnapshot(collection(db, "transactions"), (snapshot) => {
+        unsubTransactions = onSnapshot(query(collection(db, "transactions"), where("uid", "==", currentUser.uid)), (snapshot) => {
           const transData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
           setTransactions(transData.sort((a,b) => new Date(b.date) - new Date(a.date)));
         });
 
-        unsubDebts = onSnapshot(collection(db, "debts"), (snapshot) => {
+        unsubDebts = onSnapshot(query(collection(db, "debts"), where("uid", "==", currentUser.uid)), (snapshot) => {
           const debtData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
           setDebts(debtData);
         });
 
-        unsubBusiness = onSnapshot(collection(db, "sideAccount_transactions"), (snapshot) => {
+        unsubBusiness = onSnapshot(query(collection(db, "sideAccount_transactions"), where("uid", "==", currentUser.uid)), (snapshot) => {
           const bt = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
           setSideAccountTxs(bt.sort((a,b) => new Date(b.date) - new Date(a.date)));
         });
 
-        unsubBusinesses = onSnapshot(collection(db, "sideAccounts"), (snapshot) => {
+        unsubBusinesses = onSnapshot(query(collection(db, "sideAccounts"), where("uid", "==", currentUser.uid)), (snapshot) => {
           const bs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
           setSideAccounts(bs);
         });
 
-        unsubSettings = onSnapshot(collection(db, "settings"), (snapshot) => {
+        unsubSettings = onSnapshot(collection(db, `users/${currentUser.uid}/settings`), (snapshot) => {
           let hasCategories = false;
           snapshot.forEach((d) => {
             if(d.id === 'savings') setSavingsGoal(d.data().goal || 0);
@@ -102,11 +112,11 @@ export const FinanceProvider = ({ children }) => {
       if(unsubBusiness) unsubBusiness();
       if(unsubBusinesses) unsubBusinesses();
     };
-  }, []);
+  }, [currentUser]);
 
   const addTransaction = async (transaction) => {
     try {
-      const txWithTimestamp = { ...transaction, dateAdded: Date.now() };
+      const txWithTimestamp = { ...transaction, dateAdded: Date.now(), uid: currentUser.uid };
       if (db.app.options.apiKey === "YOUR_API_KEY") {
         setTransactions(prev => [{...txWithTimestamp, id: Date.now().toString()}, ...prev]);
         return;
@@ -131,7 +141,7 @@ export const FinanceProvider = ({ children }) => {
         setTransactions(prev => prev.filter(t => t.type === 'savings'));
         return;
       }
-      const snapshot = await getDocs(collection(db, "transactions"));
+      const snapshot = await getDocs(query(collection(db, "transactions"), where("uid", "==", currentUser.uid)));
       snapshot.forEach(async (d) => {
         if(d.data().type !== 'savings') {
           await deleteDoc(doc(db, "transactions", d.id));
@@ -146,7 +156,7 @@ export const FinanceProvider = ({ children }) => {
         setTransactions(prev => prev.filter(t => t.type !== 'savings'));
         return;
       }
-      const snapshot = await getDocs(collection(db, "transactions"));
+      const snapshot = await getDocs(query(collection(db, "transactions"), where("uid", "==", currentUser.uid)));
       snapshot.forEach(async (d) => {
         if(d.data().type === 'savings') {
           await deleteDoc(doc(db, "transactions", d.id));
@@ -164,13 +174,14 @@ export const FinanceProvider = ({ children }) => {
       }
       
       await addDoc(collection(db, "completed_goals"), {
+        uid: currentUser.uid,
         goalAmount: savingsGoal,
         dateReached: new Date().toISOString().split('T')[0]
       });
       
-      await setDoc(doc(db, "settings", "savings"), { goal: 0 }, { merge: true });
+      await setDoc(doc(db, `users/${currentUser.uid}/settings`, "savings"), { goal: 0 }, { merge: true });
       
-      const snapshot = await getDocs(collection(db, "transactions"));
+      const snapshot = await getDocs(query(collection(db, "transactions"), where("uid", "==", currentUser.uid)));
       snapshot.forEach(async (d) => {
         if(d.data().type === 'savings') {
           await deleteDoc(doc(db, "transactions", d.id));
@@ -185,7 +196,7 @@ export const FinanceProvider = ({ children }) => {
         setDebts(prev => [...prev, { ...debt, id: Date.now().toString() }]);
         return;
       }
-      await addDoc(collection(db, "debts"), debt);
+      await addDoc(collection(db, "debts"), { ...debt, uid: currentUser.uid });
     } catch (e) { console.error(e); }
   };
 
@@ -205,7 +216,7 @@ export const FinanceProvider = ({ children }) => {
         setDebts(prev => prev.filter(d => d.status !== 'settled'));
         return;
       }
-      const snapshot = await getDocs(collection(db, "debts"));
+      const snapshot = await getDocs(query(collection(db, "debts"), where("uid", "==", currentUser.uid)));
       snapshot.forEach(async (d) => {
         if(d.data().status === 'settled') {
           await deleteDoc(doc(db, "debts", d.id));
@@ -236,7 +247,7 @@ export const FinanceProvider = ({ children }) => {
         if(type === 'categories') setCategories(data);
         return;
       }
-      await setDoc(doc(db, "settings", type), data, { merge: true });
+      await setDoc(doc(db, `users/${currentUser.uid}/settings`, type), data, { merge: true });
     } catch (e) { console.error(e); }
   };
 
@@ -246,7 +257,7 @@ export const FinanceProvider = ({ children }) => {
         setSideAccountTxs(prev => [{...tx, id: Date.now().toString()}, ...prev]);
         return;
       }
-      await addDoc(collection(db, "sideAccount_transactions"), tx);
+      await addDoc(collection(db, "sideAccount_transactions"), { ...tx, uid: currentUser.uid });
     } catch (e) { console.error(e); }
   };
 
@@ -266,7 +277,7 @@ export const FinanceProvider = ({ children }) => {
         setSideAccountTxs(prev => prev.filter(t => t.accountId !== accountId));
         return;
       }
-      const snapshot = await getDocs(collection(db, "sideAccount_transactions"));
+      const snapshot = await getDocs(query(collection(db, "sideAccount_transactions"), where("uid", "==", currentUser.uid)));
       snapshot.forEach(async (d) => {
         if(d.data().accountId === accountId) {
           await deleteDoc(doc(db, "sideAccount_transactions", d.id));
@@ -281,7 +292,7 @@ export const FinanceProvider = ({ children }) => {
         setSideAccounts(prev => [{...account, id: Date.now().toString()}, ...prev]);
         return;
       }
-      await addDoc(collection(db, "sideAccounts"), account);
+      await addDoc(collection(db, "sideAccounts"), { ...account, uid: currentUser.uid });
     } catch (e) { console.error(e); }
   };
 

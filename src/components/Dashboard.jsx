@@ -67,7 +67,7 @@ const Dashboard = () => {
       </div>
 
       <div className="urgent-debts-section">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
           <h3 className="section-title" style={{ margin: 0 }}>Urgent Debts</h3>
           <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>
             Total Owed: <strong style={{ color: 'var(--accent-red)' }}>{formatCurrency(totalOwed)}</strong>

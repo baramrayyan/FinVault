@@ -53,12 +53,15 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .b-title-master {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .b-thumbnail {
@@ -75,6 +78,7 @@
 .b-info h4 {
   font-size: 18px;
   margin: 0;
+  word-break: break-word;
 }
 .b-info p {
   font-size: 13px;
@@ -102,12 +106,15 @@
   align-items: center;
   padding: 24px;
   margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .detail-info {
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .detail-thumbnail {
@@ -127,6 +134,7 @@
   padding: 4px;
   border-radius: var(--border-radius-md);
   margin-bottom: 8px;
+  flex-wrap: wrap;
 }
 
 .type-toggle .toggle-btn {
@@ -143,6 +151,7 @@
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s;
+  min-width: 100px;
 }
 
 .type-toggle .toggle-btn.active {
@@ -165,6 +174,8 @@
   margin-bottom: 8px;
   cursor: pointer;
   border: 1px solid transparent;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 .b-tx-row.selected {
   border-color: var(--accent-blue);
@@ -194,4 +205,15 @@
   color: var(--accent-red);
   cursor: pointer;
   padding: 4px;
+}
+
+@media (max-width: 400px) {
+  .business-detail-header, .business-form, .business-card-master {
+    padding: 16px;
+  }
+  .type-toggle .toggle-btn {
+    min-width: 0;
+    padding: 8px;
+    font-size: 12px;
+  }
 }

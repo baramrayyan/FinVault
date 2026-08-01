@@ -7,21 +7,15 @@ const ReceiptModal = ({ transactions, formatCurrency, onClose }) => {
   const handleDownload = () => {
     const element = document.getElementById('receipt-printable-area');
     
-    // Create a temporary clone wrapped in a fixed-size container at the top of the body
-    const clone = element.cloneNode(true);
-    const container = document.createElement('div');
-    container.style.position = 'absolute';
-    container.style.top = '0';
-    container.style.left = '0';
-    container.style.width = '800px';
-    container.style.background = 'white';
-    container.style.zIndex = '-9999';
-    container.appendChild(clone);
-    document.body.appendChild(container);
-
-    // Save scroll position and scroll to top
-    const originalScrollY = window.scrollY;
-    window.scrollTo(0, 0);
+    // Temporarily remove overflow constraints so html2canvas can capture the full height
+    const modal = document.querySelector('.receipt-modal');
+    const preview = document.querySelector('.receipt-preview-container');
+    
+    const origModalMaxHeight = modal.style.maxHeight;
+    const origPreviewOverflow = preview.style.overflow;
+    
+    modal.style.maxHeight = 'none';
+    preview.style.overflow = 'visible';
 
     const opt = {
       margin:       0.5,
@@ -30,16 +24,15 @@ const ReceiptModal = ({ transactions, formatCurrency, onClose }) => {
       html2canvas:  { 
         scale: 2, 
         useCORS: true,
-        scrollY: 0,
-        windowWidth: 800
+        scrollY: 0
       },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' },
-      pagebreak:    { mode: ['css', 'legacy'] }
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
     };
 
-    html2pdf().set(opt).from(container).save().then(() => {
-      document.body.removeChild(container);
-      window.scrollTo(0, originalScrollY);
+    html2pdf().set(opt).from(element).save().then(() => {
+      // Restore styles
+      modal.style.maxHeight = origModalMaxHeight;
+      preview.style.overflow = origPreviewOverflow;
     });
   };
 

@@ -7,6 +7,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .history-header .section-title { margin: 0; }
@@ -38,6 +40,8 @@
   padding: 16px;
   transition: all 0.2s;
   cursor: pointer;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 .transaction-card:active {
@@ -53,6 +57,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
 }
 
 .checkbox-wrapper {
@@ -68,6 +73,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .t-icon.income { background: rgba(50, 215, 75, 0.2); color: var(--accent-color); }
@@ -77,6 +83,7 @@
   font-size: 15px;
   font-weight: 600;
   margin-bottom: 4px;
+  word-break: break-word;
 }
 
 .t-category {

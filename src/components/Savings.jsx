@@ -8,6 +8,14 @@ const Savings = () => {
   const { transactions, savingsGoal, updateSettings, addTransaction, removeTransaction, clearSavingsHistory, completeSavingsGoal, formatCurrency, savingsAdded, getCurrencySymbol, formatDateToRelative } = useFinance();
   const [newGoal, setNewGoal] = useState('');
   const [addAmount, setAddAmount] = useState('');
+  
+  // Use local date string (YYYY-MM-DD) for accurate timezone handling
+  const getLocalDate = () => {
+    const d = new Date();
+    return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+  };
+  
+  const [addDate, setAddDate] = useState(getLocalDate());
   const [selectedTxns, setSelectedTxns] = useState([]);
   const [showReceipt, setShowReceipt] = useState(false);
   const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
@@ -37,15 +45,16 @@ const Savings = () => {
 
   const handleAddSavings = (e) => {
     e.preventDefault();
-    if (!addAmount) return;
+    if (!addAmount || !addDate) return;
     addTransaction({
       type: 'savings',
       amount: parseFloat(addAmount),
       category: 'Savings',
       reason: 'Deposit to Savings',
-      date: new Date().toISOString().split('T')[0]
+      date: addDate
     });
     setAddAmount('');
+    setAddDate(getLocalDate());
   };
 
   const isGoalReached = savingsGoal > 0 && savingsAdded >= savingsGoal;
@@ -122,12 +131,20 @@ const Savings = () => {
           <h3>Add to Savings</h3>
           <p className="subtext">Moves money from your remaining balance to savings.</p>
           <form onSubmit={handleAddSavings} className="savings-form">
-            <div className="amount-input-wrapper">
+            <div className="amount-input-wrapper" style={{marginBottom: '12px'}}>
               <span className="currency-symbol">{getCurrencySymbol()}</span>
               <input 
                 type="number" step="0.01" value={addAmount} 
                 onChange={e => setAddAmount(e.target.value)} 
                 placeholder="0.00" required
+              />
+            </div>
+            <div className="input-group" style={{marginBottom: '12px'}}>
+              <input 
+                type="date" 
+                value={addDate}
+                onChange={e => setAddDate(e.target.value)}
+                required
               />
             </div>
             <button type="submit" className="submit-btn savings-btn">Transfer</button>

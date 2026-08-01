@@ -56,6 +56,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px;
+  flex-wrap: wrap;
+  gap: 16px;
 }
 
 .debt-info {
@@ -71,6 +73,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .debt-icon.owe { background: rgba(255, 69, 58, 0.2); color: var(--accent-red); }
@@ -80,12 +83,14 @@
   font-size: 16px;
   font-weight: 600;
   margin-bottom: 4px;
+  word-break: break-word;
 }
 
 .debt-meta {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .debt-date {
@@ -109,6 +114,7 @@
   display: flex;
   align-items: center;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .debt-amount {

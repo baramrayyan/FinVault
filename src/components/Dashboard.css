@@ -36,6 +36,7 @@
   font-weight: 800;
   color: var(--text-primary);
   letter-spacing: -1px;
+  word-break: break-word;
 }
 
 .balance-icon-wrapper {
@@ -47,7 +48,7 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 16px;
 }
 
@@ -56,6 +57,11 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
+  flex-wrap: wrap;
+}
+
+.stat-card > div {
+  min-width: 0;
 }
 
 .stat-card.urgent-debts {
@@ -76,6 +82,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 .income .stat-icon { background: rgba(50, 215, 75, 0.2); color: var(--accent-color); }
@@ -90,6 +97,7 @@
 .stat-value {
   font-size: 18px;
   font-weight: 600;
+  word-break: break-word;
 }
 
 .section-title {
@@ -131,3 +139,18 @@
 .income-dot { background: var(--accent-color); }
 .expense-dot { background: var(--accent-red); }
 .savings-dot { background: #FF9F0A; }
+
+@media (max-width: 400px) {
+  .balance-amount {
+    font-size: 32px;
+  }
+  .stat-card {
+    padding: 12px;
+  }
+  .dashboard-header h2 {
+    font-size: 24px;
+  }
+  .stat-value {
+    font-size: 14px;
+  }
+}
