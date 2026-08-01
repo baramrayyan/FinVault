@@ -3,13 +3,13 @@ import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCvTRSukFQet7oS6cG6C92orZXeL5deB2E",
-  authDomain: "money-manager-a70e0.firebaseapp.com",
-  projectId: "money-manager-a70e0",
-  storageBucket: "money-manager-a70e0.firebasestorage.app",
-  messagingSenderId: "86448673836",
-  appId: "1:86448673836:web:9ba5c734a2d4b826282d89",
-  measurementId: "G-LTXFDJ4BNG"
+  apiKey: "AIzaSyBCXOcnsvYLJKUqbwQZhZF9YEFFGhPC_Z0",
+  authDomain: "finvault-project.firebaseapp.com",
+  projectId: "finvault-project",
+  storageBucket: "finvault-project.firebasestorage.app",
+  messagingSenderId: "849754303509",
+  appId: "1:849754303509:web:bcae73d470647fcba2321c",
+  measurementId: "G-5V66S1810N"
 };
 
 const app = initializeApp(firebaseConfig);
