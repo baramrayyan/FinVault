@@ -1,0 +1,30 @@
+{
+  "name": "finvault",
+  "private": true,
+  "version": "0.0.1",
+  "homepage": "https://baramrayyan.github.io/FinVault",
+  "type": "module",
+  "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "canvg": "^4.0.3",
+    "dompurify": "^3.4.12",
+    "firebase": "^10.8.0",
+    "html2pdf.js": "^0.10.1",
+    "lucide-react": "^0.323.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.22.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "gh-pages": "^6.3.0",
+    "vite": "^5.1.0",
+    "vite-plugin-pwa": "^0.17.0"
+  }
+}

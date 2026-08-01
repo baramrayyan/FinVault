@@ -1,0 +1,133 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  animation: fadeIn 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dashboard-header h2 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.balance-card {
+  position: relative;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(10, 132, 255, 0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.balance-label {
+  font-size: 14px;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.balance-amount {
+  font-size: 42px;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -1px;
+}
+
+.balance-icon-wrapper {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  opacity: 0.5;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+}
+
+.stat-card.urgent-debts {
+  background: var(--bg-secondary);
+  border: 1px solid rgba(255, 159, 10, 0.2);
+}
+
+.stat-card.savings {
+  grid-column: span 2;
+  background: linear-gradient(135deg, rgba(255, 159, 10, 0.15) 0%, rgba(255, 159, 10, 0) 100%), var(--bg-secondary);
+  border-color: rgba(255, 159, 10, 0.2);
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.income .stat-icon { background: rgba(50, 215, 75, 0.2); color: var(--accent-color); }
+.expense .stat-icon { background: rgba(255, 69, 58, 0.2); color: var(--accent-red); }
+.savings .stat-icon { background: rgba(255, 159, 10, 0.2); color: #FF9F0A; }
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.stat-value {
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.section-title {
+  font-size: 18px;
+  margin-bottom: 16px;
+  font-weight: 600;
+}
+
+.summary-bar-container {
+  width: 100%;
+  height: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 6px;
+  display: flex;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.summary-bar { height: 100%; transition: width 0.5s ease; }
+.income-bar { background: var(--accent-color); }
+.expense-bar { background: var(--accent-red); }
+.savings-bar { background: #FF9F0A; }
+
+.summary-legend {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.income-dot { background: var(--accent-color); }
+.expense-dot { background: var(--accent-red); }
+.savings-dot { background: #FF9F0A; }

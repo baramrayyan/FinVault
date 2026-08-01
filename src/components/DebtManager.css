@@ -1,0 +1,144 @@
+.debt-manager-container {
+  padding-bottom: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.debt-form-container {
+  margin-bottom: 24px;
+}
+
+.debt-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.toggle-btn.active.owe {
+  background: rgba(255, 69, 58, 0.2);
+  color: var(--accent-red);
+}
+
+.toggle-btn.active.owed {
+  background: rgba(10, 132, 255, 0.2);
+  color: var(--accent-blue);
+}
+
+.date-shortcuts {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.date-shortcuts button {
+  flex: 1;
+  padding: 6px;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(128,128,128,0.2);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.date-shortcuts button:active {
+  background: var(--accent-blue);
+  color: white;
+}
+
+.debts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.debt-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.debt-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.debt-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.debt-icon.owe { background: rgba(255, 69, 58, 0.2); color: var(--accent-red); }
+.debt-icon.owed { background: rgba(10, 132, 255, 0.2); color: var(--accent-blue); }
+
+.debt-info h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.debt-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.debt-date {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.debt-timer {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  background: rgba(0,0,0,0.2);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.light-theme .debt-timer { background: rgba(0,0,0,0.05); }
+
+.debt-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.debt-amount {
+  font-size: 20px;
+  font-weight: 700;
+}
+.debt-amount.owe { color: var(--accent-red); }
+.debt-amount.owed { color: var(--accent-blue); }
+
+.settle-btn {
+  background: transparent;
+  border: none;
+  color: #32D74B;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+
+.settle-btn:hover {
+  transform: scale(1.1);
+}
+
+.settled-card {
+  opacity: 0.7;
+  background: var(--bg-primary) !important;
+}
+
+.settled-icon {
+  background: rgba(128,128,128,0.2) !important;
+  color: var(--text-secondary) !important;
+}

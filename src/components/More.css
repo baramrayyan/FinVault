@@ -1,0 +1,47 @@
+.more-container {
+  padding-bottom: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.more-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.more-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s, border-color 0.2s;
+  cursor: pointer;
+}
+
+.more-menu-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(128, 128, 128, 0.3);
+}
+
+.more-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.more-text h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.more-text p {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
