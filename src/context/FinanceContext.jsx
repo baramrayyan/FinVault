@@ -36,10 +36,15 @@ export const FinanceProvider = ({ children }) => {
     }
   }, [theme]);
 
+  const [retryCount, setRetryCount] = useState(0);
+
   useEffect(() => {
     let unsubTransactions, unsubDebts, unsubSettings, unsubBusiness, unsubBusinesses;
+    let timeoutId;
+    let isMounted = true;
 
     const setupListeners = () => {
+      setLoading(true);
       try {
         if (!currentUser) {
           setTransactions([]);
@@ -55,24 +60,38 @@ export const FinanceProvider = ({ children }) => {
           return;
         }
 
+        let loaded = { tx: false, debts: false, busTxs: false, bus: false, settings: false };
+        const checkDone = (key) => {
+          if (!isMounted) return;
+          loaded[key] = true;
+          if (Object.values(loaded).every(v => v)) {
+            setLoading(false);
+            clearTimeout(timeoutId);
+          }
+        };
+
         unsubTransactions = onSnapshot(query(collection(db, "transactions"), where("uid", "==", currentUser.uid)), (snapshot) => {
           const transData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
           setTransactions(transData.sort((a,b) => new Date(b.date) - new Date(a.date)));
+          checkDone('tx');
         });
 
         unsubDebts = onSnapshot(query(collection(db, "debts"), where("uid", "==", currentUser.uid)), (snapshot) => {
           const debtData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
           setDebts(debtData);
+          checkDone('debts');
         });
 
         unsubBusiness = onSnapshot(query(collection(db, "sideAccount_transactions"), where("uid", "==", currentUser.uid)), (snapshot) => {
           const bt = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
           setSideAccountTxs(bt.sort((a,b) => new Date(b.date) - new Date(a.date)));
+          checkDone('busTxs');
         });
 
         unsubBusinesses = onSnapshot(query(collection(db, "sideAccounts"), where("uid", "==", currentUser.uid)), (snapshot) => {
           const bs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
           setSideAccounts(bs);
+          checkDone('bus');
         });
 
         unsubSettings = onSnapshot(collection(db, `users/${currentUser.uid}/settings`), (snapshot) => {
@@ -94,9 +113,21 @@ export const FinanceProvider = ({ children }) => {
           });
           
           if(!hasCategories) setCategories(DEFAULT_CATEGORIES);
+          checkDone('settings');
         });
 
-        setLoading(false);
+        timeoutId = setTimeout(() => {
+           if (isMounted) {
+             console.warn("Loading taking too long. Retrying...");
+             if(unsubTransactions) unsubTransactions();
+             if(unsubDebts) unsubDebts();
+             if(unsubSettings) unsubSettings();
+             if(unsubBusiness) unsubBusiness();
+             if(unsubBusinesses) unsubBusinesses();
+             setRetryCount(prev => prev + 1);
+           }
+        }, 8000); // 8 seconds timeout
+
       } catch (e) {
         console.error("Firebase err:", e);
         setLoading(false);
@@ -106,13 +137,15 @@ export const FinanceProvider = ({ children }) => {
     setupListeners();
 
     return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
       if(unsubTransactions) unsubTransactions();
       if(unsubDebts) unsubDebts();
       if(unsubSettings) unsubSettings();
       if(unsubBusiness) unsubBusiness();
       if(unsubBusinesses) unsubBusinesses();
     };
-  }, [currentUser]);
+  }, [currentUser, retryCount]);
 
   const addTransaction = async (transaction) => {
     try {
@@ -134,6 +167,16 @@ export const FinanceProvider = ({ children }) => {
       await deleteDoc(doc(db, "transactions", id));
     } catch (e) { console.error(e); }
   }
+
+  const updateTransaction = async (id, updatedData) => {
+    try {
+      if (db.app.options.apiKey === "YOUR_API_KEY") {
+        setTransactions(prev => prev.map(t => t.id === id ? { ...t, ...updatedData } : t));
+        return;
+      }
+      await setDoc(doc(db, "transactions", id), updatedData, { merge: true });
+    } catch (e) { console.error(e); }
+  };
 
   const clearTransactions = async () => {
     try {
@@ -365,7 +408,7 @@ export const FinanceProvider = ({ children }) => {
     <FinanceContext.Provider value={{
       transactions, monthlyTransactions, debts, sideAccounts, sideAccountTxs, loading, savingsGoal, income, expense, remaining, savingsAdded,
       theme, currency, categories, selectedMonth, setSelectedMonth, tabOrder,
-      addTransaction, removeTransaction, clearTransactions, clearSavingsHistory, completeSavingsGoal, addDebt, removeDebt, settleDebt, clearDebtHistory, addSideAccountTx, removeSideAccountTx, clearSideAccountTxs, addSideAccount, removeSideAccount, updateSettings, formatCurrency, getCurrencySymbol, formatDateToRelative
+      addTransaction, removeTransaction, updateTransaction, clearTransactions, clearSavingsHistory, completeSavingsGoal, addDebt, removeDebt, settleDebt, clearDebtHistory, addSideAccountTx, removeSideAccountTx, clearSideAccountTxs, addSideAccount, removeSideAccount, updateSettings, formatCurrency, getCurrencySymbol, formatDateToRelative
     }}>
       {children}
     </FinanceContext.Provider>

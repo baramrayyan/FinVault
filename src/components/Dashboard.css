@@ -140,7 +140,7 @@
 .expense-dot { background: var(--accent-red); }
 .savings-dot { background: #FF9F0A; }
 
-@media (max-width: 400px) {
+@media (max-width: 500px) {
   .balance-amount {
     font-size: 32px;
   }
@@ -153,4 +153,22 @@
   .stat-value {
     font-size: 14px;
   }
+  
+  .category-breakdown-content {
+    flex-direction: column !important;
+    justify-content: center;
+    text-align: left;
+    gap: 16px !important;
+  }
+  
+  .pie-chart-container {
+    margin: 0 auto;
+  }
+}
+
+.category-breakdown-content {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
 }

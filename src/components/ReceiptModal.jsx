@@ -1,9 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import html2pdf from 'html2pdf.js';
 import { Download, X } from 'lucide-react';
 import './ReceiptModal.css';
 
 const ReceiptModal = ({ transactions, formatCurrency, onClose }) => {
+  const [receiptTitle, setReceiptTitle] = useState('FINVAULT OFFICIAL RECEIPT');
+  const [showLogo, setShowLogo] = useState(true);
+
   const handleDownload = () => {
     const element = document.getElementById('receipt-printable-area');
     
@@ -45,11 +48,35 @@ const ReceiptModal = ({ transactions, formatCurrency, onClose }) => {
       <div className="receipt-modal glass-panel">
         <button className="close-btn" onClick={onClose}><X size={24} /></button>
         
+        <div className="receipt-customization">
+          <div className="customization-group title-input">
+            <label>Receipt Title</label>
+            <input 
+              type="text" 
+              value={receiptTitle} 
+              onChange={(e) => setReceiptTitle(e.target.value)}
+              placeholder="Enter receipt title..."
+            />
+          </div>
+          <div className="customization-group toggle-input">
+            <label htmlFor="showLogoToggle">Show Logo</label>
+            <label className="ios-switch">
+              <input 
+                type="checkbox" 
+                id="showLogoToggle"
+                checked={showLogo} 
+                onChange={(e) => setShowLogo(e.target.checked)}
+              />
+              <span className="ios-slider"></span>
+            </label>
+          </div>
+        </div>
+
         <div className="receipt-preview-container">
           <div id="receipt-printable-area" className="realistic-receipt">
             <div className="receipt-header">
-              <img src={`${import.meta.env.BASE_URL}logo.png`} alt="FinVault Logo" className="receipt-logo" />
-              <h2>FINVAULT OFFICIAL RECEIPT</h2>
+              {showLogo && <img src={`${import.meta.env.BASE_URL}logo.png`} alt="FinVault Logo" className="receipt-logo" />}
+              <h2>{receiptTitle || 'RECEIPT'}</h2>
               <p>Date: {new Date().toLocaleString()}</p>
               <p>Transactions: {transactions.length}</p>
             </div>
@@ -69,7 +96,7 @@ const ReceiptModal = ({ transactions, formatCurrency, onClose }) => {
                   <tr key={t.id}>
                     <td>
                       <strong>{t.reason}</strong><br/>
-                      <small>{t.category} ({t.date})</small>
+                      <small>{t.category} ({t.date.includes('T') ? new Date(t.date).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}) : t.date})</small>
                     </td>
                     <td>1</td>
                     <td style={{textAlign: 'right', color: t.type === 'income' ? '#32D74B' : '#FF453A'}}>
@@ -99,7 +126,6 @@ const ReceiptModal = ({ transactions, formatCurrency, onClose }) => {
             </div>
 
             <div className="receipt-footer">
-              <p>THANK YOU FOR USING FINVAULT</p>
               <div className="barcode">|| |||| | ||| || ||| | ||</div>
             </div>
           </div>

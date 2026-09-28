@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { PlusCircle, MinusCircle } from 'lucide-react';
+import { PlusCircle, MinusCircle, Clock } from 'lucide-react';
 import DayPicker from './DayPicker';
 import './TransactionForm.css';
 
@@ -9,13 +9,25 @@ const categories = {
   expense: ['Rent', 'Groceries', 'Utilities', 'Transportation', 'Entertainment', 'Shopping', 'Other']
 };
 
-const TransactionForm = () => {
-  const { addTransaction, categories, getCurrencySymbol, selectedMonth } = useFinance();
-  const [type, setType] = useState('expense');
-  const [amount, setAmount] = useState('');
-  const [category, setCategory] = useState(categories.expense[0]);
-  const [reason, setReason] = useState('');
-  const [day, setDay] = useState(() => new Date().getDate().toString());
+const TransactionForm = ({ initialTransaction = null, onCancel = null }) => {
+  const { addTransaction, updateTransaction, categories, getCurrencySymbol, selectedMonth } = useFinance();
+  const [type, setType] = useState(initialTransaction ? initialTransaction.type : 'expense');
+  const [amount, setAmount] = useState(initialTransaction ? initialTransaction.amount.toString() : '');
+  const [category, setCategory] = useState(initialTransaction ? initialTransaction.category : categories.expense[0]);
+  const [reason, setReason] = useState(initialTransaction ? initialTransaction.reason : '');
+  const [day, setDay] = useState(() => {
+    if (initialTransaction && initialTransaction.date) {
+      return parseInt(initialTransaction.date.split('T')[0].split('-')[2], 10).toString();
+    }
+    return new Date().getDate().toString();
+  });
+  const [time, setTime] = useState(() => {
+    if (initialTransaction && initialTransaction.date && initialTransaction.date.includes('T')) {
+      return initialTransaction.date.split('T')[1].substring(0, 5);
+    }
+    const now = new Date();
+    return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+  });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -23,24 +35,36 @@ const TransactionForm = () => {
     
     let yearMonth = selectedMonth;
     if (selectedMonth === 'all') {
-      const now = new Date();
-      yearMonth = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+      if (initialTransaction && initialTransaction.date) {
+        yearMonth = initialTransaction.date.substring(0, 7);
+      } else {
+        const now = new Date();
+        yearMonth = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+      }
     }
     
     const paddedDay = day.toString().padStart(2, '0');
-    const fullDate = `${yearMonth}-${paddedDay}`;
+    const fullDate = `${yearMonth}-${paddedDay}T${time}:00`;
     
-    addTransaction({
+    const txData = {
       type,
       amount: parseFloat(amount),
       category,
       reason,
       date: fullDate
-    });
+    };
 
-    setAmount('');
-    setReason('');
-    setDay(new Date().getDate().toString());
+    if (initialTransaction) {
+      updateTransaction(initialTransaction.id, txData);
+      if (onCancel) onCancel();
+    } else {
+      addTransaction(txData);
+      setAmount('');
+      setReason('');
+      setDay(new Date().getDate().toString());
+      const now = new Date();
+      setTime(`${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`);
+    }
   };
 
   const setShortcutDate = (daysOffset) => {
@@ -51,7 +75,7 @@ const TransactionForm = () => {
 
   return (
     <div className="transaction-form-container glass-panel">
-      <h2 className="section-title">Add Transaction</h2>
+      <h2 className="section-title">{initialTransaction ? 'Edit Transaction' : 'Add Transaction'}</h2>
       
       <div className="type-toggle">
         <button 
@@ -101,16 +125,33 @@ const TransactionForm = () => {
           />
         </div>
 
-        <div className="input-group">
-          <label>Day (of {selectedMonth === 'all' ? 'current month' : selectedMonth})</label>
-          <DayPicker 
-            yearMonth={selectedMonth === 'all' ? `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}` : selectedMonth}
-            selectedDay={day}
-            onSelectDay={setDay}
-          />
+        <div className="datetime-group">
+          <div className="input-group date-picker-group">
+            <label>Date (of {(selectedMonth === 'all' && (!initialTransaction || !initialTransaction.date)) ? 'current month' : (initialTransaction?.date?.substring(0,7) || selectedMonth)})</label>
+            <DayPicker 
+              yearMonth={(selectedMonth === 'all' && (!initialTransaction || !initialTransaction.date)) ? `${new Date().getFullYear()}-${(new Date().getMonth() + 1).toString().padStart(2, '0')}` : (initialTransaction?.date?.split('T')[0].substring(0,7) || selectedMonth)}
+              selectedDay={day}
+              onSelectDay={setDay}
+            />
+          </div>
+          <div className="input-group time-picker-group">
+            <label>Time</label>
+            <div className="time-selector-btn">
+              <Clock size={18} color="var(--text-secondary)" />
+              <input 
+                type="time" 
+                value={time} 
+                onChange={e => setTime(e.target.value)} 
+                required
+              />
+            </div>
+          </div>
         </div>
 
-        <button type="submit" className="submit-btn">Save Transaction</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button type="submit" className="submit-btn" style={{ flex: 1 }}>{initialTransaction ? 'Update' : 'Save'} Transaction</button>
+          {onCancel && <button type="button" onClick={onCancel} className="submit-btn" style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)', flex: 1 }}>Cancel</button>}
+        </div>
       </form>
     </div>
   );

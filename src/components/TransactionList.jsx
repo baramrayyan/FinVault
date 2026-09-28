@@ -1,13 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { Download, FileText, CheckSquare, Square, Trash2, Filter, ChevronDown, Check } from 'lucide-react';
+import { Download, FileText, CheckSquare, Square, Trash2, Edit2, Filter, ChevronDown, Check } from 'lucide-react';
 import ReceiptModal from './ReceiptModal';
+import TransactionForm from './TransactionForm';
 import './TransactionList.css';
 
 const TransactionList = () => {
   const { monthlyTransactions, formatCurrency, removeTransaction, clearTransactions, formatDateToRelative } = useFinance();
   const [selectedTxns, setSelectedTxns] = useState([]);
   const [showReceipt, setShowReceipt] = useState(false);
+  const [editingTxn, setEditingTxn] = useState(null);
   const [sortBy, setSortBy] = useState('dateAdded');
   const [isSortOpen, setIsSortOpen] = useState(false);
   const sortRef = useRef(null);
@@ -93,9 +95,28 @@ const TransactionList = () => {
           </div>
 
           {selectedTxns.length > 0 && (
-            <button className="generate-multi-btn" onClick={handleGenerateReceipt}>
-              <Download size={16} /> Print Selected ({selectedTxns.length})
-            </button>
+            <>
+              {selectedTxns.length < displayTransactions.length ? (
+                <button 
+                  className="generate-multi-btn"
+                  onClick={() => setSelectedTxns(displayTransactions.map(t => t.id))}
+                  style={{background: 'rgba(58, 134, 255, 0.1)', color: 'var(--accent-blue)'}}
+                >
+                  <CheckSquare size={16} /> Select All
+                </button>
+              ) : (
+                <button 
+                  className="generate-multi-btn"
+                  onClick={() => setSelectedTxns([])}
+                  style={{background: 'rgba(150, 150, 150, 0.1)', color: 'var(--text-secondary)'}}
+                >
+                  <Square size={16} /> Deselect All
+                </button>
+              )}
+              <button className="generate-multi-btn" onClick={handleGenerateReceipt}>
+                <Download size={16} /> Print Selected ({selectedTxns.length})
+              </button>
+            </>
           )}
           
           {displayTransactions.length > 0 && (
@@ -128,20 +149,31 @@ const TransactionList = () => {
                   <div className={`t-icon ${t.type}`}><FileText size={18}/></div>
                   <div>
                     <h4>{t.reason}</h4>
-                    <span className="t-category">{t.category} • {t.date} ({formatDateToRelative(t.date)})</span>
+                    <span className="t-category">
+                      {t.category} • {t.date.includes('T') ? new Date(t.date).toLocaleString([], {month:'short', day:'numeric', hour:'numeric', minute:'2-digit'}) : t.date} ({formatDateToRelative(t.date)})
+                    </span>
                   </div>
                 </div>
-                <div className="transaction-actions" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                <div className="transaction-actions">
                   <h3 className={`t-amount ${t.type}`}>
                     {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                   </h3>
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); removeTransaction(t.id); }}
-                    style={{background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px'}}
-                    title="Delete Transaction"
-                  >
-                    <Trash2 size={20} />
-                  </button>
+                  <div className="action-buttons">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); setEditingTxn(t); }}
+                      className="icon-btn edit-btn"
+                      title="Edit Transaction"
+                    >
+                      <Edit2 size={20} />
+                    </button>
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); removeTransaction(t.id); }}
+                      className="icon-btn delete-btn"
+                      title="Delete Transaction"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </div>
                 </div>
               </div>
             )
@@ -155,6 +187,17 @@ const TransactionList = () => {
           formatCurrency={formatCurrency}
           onClose={() => setShowReceipt(false)} 
         />
+      )}
+
+      {editingTxn && (
+        <div className="modal-overlay">
+          <div style={{ width: '100%', maxWidth: '500px', margin: '20px' }}>
+            <TransactionForm 
+              initialTransaction={editingTxn} 
+              onCancel={() => setEditingTxn(null)} 
+            />
+          </div>
+        </div>
       )}
     </div>
   );
