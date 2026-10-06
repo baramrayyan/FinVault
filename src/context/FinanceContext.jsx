@@ -26,6 +26,20 @@ export const FinanceProvider = ({ children }) => {
   const [currency, setCurrency] = useState('JOD');
   const [tabOrder, setTabOrder] = useState(['dashboard', 'add', 'history', 'savings']);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [dashboardLayout, setDashboardLayout] = useState([
+    { id: 'balance', visible: true, label: 'Remaining Balance' },
+    { id: 'stats', visible: true, label: 'Income & Expense Stats' },
+    { id: 'summary', visible: true, label: 'Monthly Summary Bar' },
+    { id: 'insight-daily', visible: true, label: 'Insight: Avg Daily Spend' },
+    { id: 'insight-tx', visible: true, label: 'Insight: Transactions Count' },
+    { id: 'breakdown', visible: true, label: 'Expense Breakdown' },
+    { id: 'debts', visible: true, label: 'Urgent Debts' }
+  ]);
+  const [features, setFeatures] = useState({
+    savings: true,
+    debts: true,
+    accounts: true
+  });
 
   useEffect(() => {
     // Apply theme to body
@@ -102,6 +116,8 @@ export const FinanceProvider = ({ children }) => {
               setTheme(d.data().theme || 'dark');
               setCurrency(d.data().currency || 'JOD');
               if (d.data().tabOrder) setTabOrder(d.data().tabOrder);
+              if (d.data().features) setFeatures(d.data().features);
+              if (d.data().dashboardLayout) setDashboardLayout(d.data().dashboardLayout);
             }
             if(d.id === 'categories') {
               setCategories({
@@ -286,6 +302,8 @@ export const FinanceProvider = ({ children }) => {
           if(data.theme) setTheme(data.theme); 
           if(data.currency) setCurrency(data.currency); 
           if(data.tabOrder) setTabOrder(data.tabOrder); 
+          if(data.features) setFeatures(data.features);
+          if(data.dashboardLayout) setDashboardLayout(data.dashboardLayout);
         }
         if(type === 'categories') setCategories(data);
         return;
@@ -313,6 +331,16 @@ export const FinanceProvider = ({ children }) => {
       await deleteDoc(doc(db, "sideAccount_transactions", id));
     } catch (e) { console.error(e); }
   }
+
+  const updateSideAccountTx = async (id, updatedData) => {
+    try {
+      if (db.app.options.apiKey === "YOUR_API_KEY") {
+        setSideAccountTxs(prev => prev.map(t => t.id === id ? { ...t, ...updatedData } : t));
+        return;
+      }
+      await setDoc(doc(db, "sideAccount_transactions", id), updatedData, { merge: true });
+    } catch (e) { console.error(e); }
+  };
 
   const clearSideAccountTxs = async (accountId) => {
     try {
@@ -407,8 +435,8 @@ export const FinanceProvider = ({ children }) => {
   return (
     <FinanceContext.Provider value={{
       transactions, monthlyTransactions, debts, sideAccounts, sideAccountTxs, loading, savingsGoal, income, expense, remaining, savingsAdded,
-      theme, currency, categories, selectedMonth, setSelectedMonth, tabOrder,
-      addTransaction, removeTransaction, updateTransaction, clearTransactions, clearSavingsHistory, completeSavingsGoal, addDebt, removeDebt, settleDebt, clearDebtHistory, addSideAccountTx, removeSideAccountTx, clearSideAccountTxs, addSideAccount, removeSideAccount, updateSettings, formatCurrency, getCurrencySymbol, formatDateToRelative
+      theme, currency, categories, selectedMonth, setSelectedMonth, tabOrder, features, dashboardLayout,
+      addTransaction, removeTransaction, updateTransaction, clearTransactions, clearSavingsHistory, completeSavingsGoal, addDebt, removeDebt, settleDebt, clearDebtHistory, addSideAccountTx, removeSideAccountTx, updateSideAccountTx, clearSideAccountTxs, addSideAccount, removeSideAccount, updateSettings, formatCurrency, getCurrencySymbol, formatDateToRelative
     }}>
       {children}
     </FinanceContext.Provider>

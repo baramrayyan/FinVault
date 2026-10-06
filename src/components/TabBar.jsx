@@ -12,15 +12,21 @@ const TAB_CONFIG = {
   'stats': { path: '/stats', icon: BarChart2, label: 'Stats' },
   'debts': { path: '/debts', icon: Users, label: 'Debts' },
   'side-accounts': { path: '/side-accounts', icon: Briefcase, label: 'Accounts' },
+  'convert': { path: '/convert', icon: ({size}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>, label: 'Convert' },
   'settings': { path: '/settings', icon: Settings, label: 'Settings' }
 };
 
 const TabBar = () => {
-  const { tabOrder } = useFinance();
+  const { tabOrder, features } = useFinance();
 
   return (
     <nav className="tab-bar">
       {tabOrder.map(tabId => {
+        if (tabId === 'savings' && features?.savings === false) return null;
+        if (tabId === 'debts' && features?.debts === false) return null;
+        if (tabId === 'side-accounts' && features?.accounts === false) return null;
+        if (tabId === 'convert' && features?.converter === false) return null;
+
         const config = TAB_CONFIG[tabId];
         if (!config) return null;
         const Icon = config.icon;

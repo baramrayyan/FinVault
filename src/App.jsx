@@ -13,6 +13,7 @@ import TabBar from './components/TabBar';
 import Header from './components/Header';
 import More from './components/More';
 import Stats from './components/Stats';
+import CurrencyConverter from './components/CurrencyConverter';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import Landing from './components/Landing';
 import Login from './components/Login';
@@ -69,6 +70,7 @@ function AppContent() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/more" element={<More />} />
           <Route path="/stats" element={<Stats />} />
+          <Route path="/convert" element={<CurrencyConverter />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>

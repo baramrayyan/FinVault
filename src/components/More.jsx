@@ -12,15 +12,23 @@ const TAB_CONFIG = {
   'stats': { path: '/stats', icon: BarChart2, label: 'Yearly Stats', desc: 'View your annual breakdown' },
   'debts': { path: '/debts', icon: Users, label: 'Debts', desc: 'Manage who owes you and what you owe' },
   'side-accounts': { path: '/side-accounts', icon: Briefcase, label: 'Side Accounts', desc: 'Manage separate finances for your projects' },
+  'convert': { path: '/convert', icon: ({size}) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>, label: 'Convert Currency', desc: 'Check live exchange rates' },
   'settings': { path: '/settings', icon: Settings, label: 'Settings', desc: 'Customize themes, currencies and categories' }
 };
 
-const ALL_TABS = ['dashboard', 'add', 'history', 'savings', 'stats', 'debts', 'side-accounts', 'settings'];
+const ALL_TABS = ['dashboard', 'add', 'history', 'savings', 'stats', 'debts', 'side-accounts', 'convert', 'settings'];
 
 const More = () => {
-  const { tabOrder } = useFinance();
+  const { tabOrder, features } = useFinance();
   
-  const moreTabs = ALL_TABS.filter(id => !tabOrder.includes(id));
+  const moreTabs = ALL_TABS.filter(id => {
+    if (tabOrder.includes(id)) return false;
+    if (id === 'savings' && features?.savings === false) return false;
+    if (id === 'debts' && features?.debts === false) return false;
+    if (id === 'side-accounts' && features?.accounts === false) return false;
+    if (id === 'convert' && features?.converter === false) return false;
+    return true;
+  });
 
   return (
     <div className="more-container">

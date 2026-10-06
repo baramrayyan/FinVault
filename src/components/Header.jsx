@@ -7,6 +7,7 @@ import './Header.css';
 const Header = () => {
   const { selectedMonth, setSelectedMonth } = useFinance();
   const [isOpen, setIsOpen] = useState(false);
+  const [showPastYears, setShowPastYears] = useState(false);
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -18,6 +19,12 @@ const Header = () => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      setShowPastYears(false);
+    }
+  }, [isOpen]);
   
   useEffect(() => {
     if (isOpen && dropdownRef.current) {
@@ -28,33 +35,46 @@ const Header = () => {
     }
   }, [isOpen]);
   
-  const generateMonths = useMemo(() => {
-    const months = [];
+  const { currentYearMonths, pastYearMonths } = useMemo(() => {
+    const current = [];
+    const past = [];
     const currentDate = new Date();
-    // Start from December of the current year
-    let currentYear = currentDate.getFullYear();
-    let currentMonth = 12; 
+    const actualYear = currentDate.getFullYear();
     
-    // Generate past 36 months from end of current year
+    let year = actualYear;
+    let month = 12; 
+    
     for(let i=0; i<36; i++) {
-      const monthStr = currentMonth.toString().padStart(2, '0');
-      const value = `${currentYear}-${monthStr}`;
-      const dateObj = new Date(currentYear, currentMonth - 1);
+      const monthStr = month.toString().padStart(2, '0');
+      const value = `${year}-${monthStr}`;
+      const dateObj = new Date(year, month - 1);
       const label = dateObj.toLocaleDateString('default', { month: 'short', year: 'numeric' });
-      months.push({ value, label });
       
-      currentMonth--;
-      if (currentMonth === 0) {
-        currentMonth = 12;
-        currentYear--;
+      if (year === actualYear) {
+         current.push({ value, label });
+      } else {
+         past.push({ value, label });
+      }
+      
+      month--;
+      if (month === 0) {
+        month = 12;
+        year--;
       }
     }
-    return months;
+    return { currentYearMonths: current, pastYearMonths: past };
   }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+       const isPast = pastYearMonths.some(m => m.value === selectedMonth);
+       if (isPast) setShowPastYears(true);
+    }
+  }, [isOpen, selectedMonth, pastYearMonths]);
 
   const getLabel = () => {
     if (selectedMonth === 'all') return 'All Time';
-    const found = generateMonths.find(m => m.value === selectedMonth);
+    const found = [...currentYearMonths, ...pastYearMonths].find(m => m.value === selectedMonth);
     return found ? found.label : selectedMonth;
   };
 
@@ -84,7 +104,28 @@ const Header = () => {
               <span>All Time</span>
               {selectedMonth === 'all' && <Check size={16} color="var(--accent-blue)" />}
             </div>
-            {generateMonths.map(m => (
+            {currentYearMonths.map(m => (
+              <div 
+                key={m.value}
+                className={`dropdown-item ${selectedMonth === m.value ? 'active' : ''}`}
+                onClick={() => { setSelectedMonth(m.value); setIsOpen(false); }}
+              >
+                <span>{m.label}</span>
+                {selectedMonth === m.value && <Check size={16} color="var(--accent-blue)" />}
+              </div>
+            ))}
+
+            {!showPastYears && pastYearMonths.length > 0 && (
+               <div 
+                 className="dropdown-item" 
+                 style={{ justifyContent: 'center', color: 'var(--accent-blue)', fontWeight: 'bold' }}
+                 onClick={(e) => { e.stopPropagation(); setShowPastYears(true); }}
+               >
+                 View More (Past Years)
+               </div>
+            )}
+
+            {showPastYears && pastYearMonths.map(m => (
               <div 
                 key={m.value}
                 className={`dropdown-item ${selectedMonth === m.value ? 'active' : ''}`}

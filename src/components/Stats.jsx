@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { BarChart2, TrendingUp, TrendingDown, Award } from 'lucide-react';
+import { BarChart2, TrendingUp, TrendingDown, Award, AlertCircle } from 'lucide-react';
+
+const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const Stats = () => {
   const { transactions, formatCurrency } = useFinance();
@@ -47,7 +49,21 @@ const Stats = () => {
     return { months, highestInc, highestExp, maxVal };
   }, [transactions, selectedYear]);
 
-  const monthLabels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const yearlyInsights = useMemo(() => {
+    const totalYearlyInc = stats.months.reduce((acc, m) => acc + m.income, 0);
+    const totalYearlyExp = stats.months.reduce((acc, m) => acc + m.expense, 0);
+    const activeMonths = stats.months.filter(m => m.income > 0 || m.expense > 0).length;
+    const avgMonthlyExp = activeMonths > 0 ? totalYearlyExp / activeMonths : 0;
+    const yearlyNet = totalYearlyInc - totalYearlyExp;
+    const highestMonthExp = [...stats.months].sort((a, b) => b.expense - a.expense)[0];
+    
+    return {
+      avgMonthlyExp,
+      yearlyNet,
+      highestMonthExp,
+      activeMonths
+    };
+  }, [stats]);
 
   return (
     <div className="stats-container" style={{animation: 'fadeIn 0.3s ease-out'}}>
@@ -87,6 +103,31 @@ const Stats = () => {
           ) : <p style={{color: 'var(--text-secondary)'}}>No data</p>}
         </div>
       </div>
+
+      {yearlyInsights.activeMonths > 0 && (
+        <div className="glass-panel" style={{padding: '24px', marginBottom: '24px'}}>
+          <h3 style={{margin: '0 0 16px 0', fontSize: '16px'}}>Yearly Insights</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '12px' }}>
+            <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px', background: 'var(--bg-tertiary)' }}>
+               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Avg Monthly Spend</span>
+               <span style={{ fontWeight: 'bold', fontSize: '16px', color: 'var(--text-primary)' }}>{formatCurrency(yearlyInsights.avgMonthlyExp)}</span>
+            </div>
+            <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px', background: 'var(--bg-tertiary)' }}>
+               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Yearly Net</span>
+               <span style={{ fontWeight: 'bold', fontSize: '16px', color: yearlyInsights.yearlyNet >= 0 ? '#32D74B' : '#FF453A' }}>{yearlyInsights.yearlyNet >= 0 ? '+' : ''}{formatCurrency(yearlyInsights.yearlyNet)}</span>
+            </div>
+            <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px', background: 'var(--bg-tertiary)' }}>
+               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Peak Expense</span>
+               <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-primary)' }}>{yearlyInsights.highestMonthExp && yearlyInsights.highestMonthExp.expense > 0 ? monthLabels[yearlyInsights.highestMonthExp.month - 1] : 'N/A'}</span>
+               {yearlyInsights.highestMonthExp && yearlyInsights.highestMonthExp.expense > 0 && <span style={{ fontSize: '11px', color: '#ff9f43' }}>{formatCurrency(yearlyInsights.highestMonthExp.expense)}</span>}
+            </div>
+            <div className="glass-panel" style={{ padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px', background: 'var(--bg-tertiary)' }}>
+               <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Active Months</span>
+               <span style={{ fontWeight: 'bold', fontSize: '16px', color: 'var(--text-primary)' }}>{yearlyInsights.activeMonths}</span>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="glass-panel" style={{padding: '24px'}}>
         <h3 style={{margin: '0 0 24px 0', fontSize: '16px'}}>Monthly Breakdown</h3>

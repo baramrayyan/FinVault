@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { PlusCircle, MinusCircle, Clock } from 'lucide-react';
+import { PlusCircle, MinusCircle, Clock, ArrowRightLeft } from 'lucide-react';
 import DayPicker from './DayPicker';
+import CurrencyConverter from './CurrencyConverter';
 import './TransactionForm.css';
 
 const categories = {
@@ -28,6 +29,7 @@ const TransactionForm = ({ initialTransaction = null, onCancel = null }) => {
     const now = new Date();
     return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
   });
+  const [showConverter, setShowConverter] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -94,7 +96,16 @@ const TransactionForm = ({ initialTransaction = null, onCancel = null }) => {
 
       <form onSubmit={handleSubmit} className="transaction-form">
         <div className="input-group">
-          <label>Amount</label>
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+            <label style={{margin: 0}}>Amount</label>
+            <button 
+              type="button" 
+              onClick={() => setShowConverter(true)}
+              style={{background: 'transparent', border: 'none', color: 'var(--accent-blue)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', cursor: 'pointer', padding: 0}}
+            >
+              <ArrowRightLeft size={14} /> Convert
+            </button>
+          </div>
           <div className="amount-input-wrapper">
             <span className="currency-symbol">{getCurrencySymbol()}</span>
             <input 
@@ -153,6 +164,24 @@ const TransactionForm = ({ initialTransaction = null, onCancel = null }) => {
           {onCancel && <button type="button" onClick={onCancel} className="submit-btn" style={{ background: 'var(--bg-tertiary)', color: 'var(--text-primary)', flex: 1 }}>Cancel</button>}
         </div>
       </form>
+      
+      {showConverter && (
+        <div className="modal-overlay">
+          <div style={{ width: '100%', maxWidth: '400px', margin: '20px', background: 'var(--bg-secondary)', borderRadius: '16px', overflow: 'hidden', padding: '16px' }}>
+            <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
+              <h3 style={{margin: 0}}>Convert Currency</h3>
+              <button onClick={() => setShowConverter(false)} style={{background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '20px'}}>&times;</button>
+            </div>
+            <CurrencyConverter 
+              isModal={true} 
+              onApply={(val) => {
+                setAmount(val);
+                setShowConverter(false);
+              }} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

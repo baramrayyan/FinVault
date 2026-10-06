@@ -15,11 +15,12 @@ const ALL_TABS = [
   { id: 'stats', label: 'Yearly Stats' },
   { id: 'debts', label: 'Debts' },
   { id: 'side-accounts', label: 'Side Accounts' },
+  { id: 'convert', label: 'Convert Currency' },
   { id: 'settings', label: 'Settings' }
 ];
 
 const Settings = () => {
-  const { theme, currency, categories, tabOrder, updateSettings } = useFinance();
+  const { theme, currency, categories, tabOrder, features, updateSettings } = useFinance();
   const { currentUser, logout, updateUserName, updateUserPassword } = useAuth();
   const navigate = useNavigate();
 
@@ -36,7 +37,7 @@ const Settings = () => {
   };
 
   const handleCurrencyChange = (e) => {
-    updateSettings('preferences', { theme, currency: e.target.value, tabOrder });
+    updateSettings('preferences', { theme, currency: e.target.value, tabOrder, features });
   };
 
   const handleToggleTab = (id) => {
@@ -46,7 +47,12 @@ const Settings = () => {
     } else {
       newOrder.push(id);
     }
-    updateSettings('preferences', { theme, currency, tabOrder: newOrder });
+    updateSettings('preferences', { theme, currency, tabOrder: newOrder, features });
+  };
+
+  const handleToggleFeature = (featureKey) => {
+    const newFeatures = { ...features, [featureKey]: !features[featureKey] };
+    updateSettings('preferences', { theme, currency, tabOrder, features: newFeatures });
   };
 
   const addCategory = () => {
@@ -173,6 +179,26 @@ const Settings = () => {
           <select value={currency} onChange={handleCurrencyChange} className="currency-select">
             {CURRENCIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
+        </div>
+      </div>
+
+      <div className="settings-section glass-panel">
+        <h3>Feature Toggles</h3>
+        <p className="subtext" style={{marginBottom: '16px'}}>Enable or disable extra features. Disabling them hides them completely from the app.</p>
+        <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+          {[
+            { id: 'savings', label: 'Savings Goals' },
+            { id: 'debts', label: 'Debt Manager' },
+            { id: 'accounts', label: 'Side Accounts' },
+            { id: 'converter', label: 'Currency Converter' }
+          ].map(feat => (
+            <div key={feat.id} className="setting-item" style={{justifyContent: 'space-between', background: 'var(--bg-tertiary)', padding: '12px 16px', borderRadius: '8px', cursor: 'pointer', border: features[feat.id] !== false ? '1px solid var(--accent-blue)' : '1px solid transparent'}} onClick={() => handleToggleFeature(feat.id)}>
+              <span style={{fontWeight: features[feat.id] !== false ? 'bold' : 'normal', color: features[feat.id] !== false ? 'var(--accent-blue)' : 'var(--text-primary)'}}>{feat.label}</span>
+              <div className="checkbox-wrapper">
+                {features[feat.id] !== false ? <CheckSquare size={20} color="var(--accent-blue)"/> : <Square size={20} color="var(--text-secondary)"/>}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

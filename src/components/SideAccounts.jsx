@@ -1,7 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { Briefcase, TrendingUp, TrendingDown, Trash2, ArrowLeft, Download, FileText, CheckSquare, Square } from 'lucide-react';
+import { Briefcase, TrendingUp, TrendingDown, Trash2, Edit2, ArrowLeft, Download, FileText, CheckSquare, Square, ArrowRightLeft } from 'lucide-react';
 import ReceiptModal from './ReceiptModal';
+import CurrencyConverter from './CurrencyConverter';
 import './SideAccounts.css';
 
 const SideAccounts = () => {
@@ -20,11 +21,21 @@ const SideAccounts = () => {
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('income');
   const [reason, setReason] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [date, setDate] = useState(() => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  });
   
   // Receipt States
   const [selectedTxns, setSelectedTxns] = useState([]);
   const [showReceipt, setShowReceipt] = useState(false);
+
+  // Converter State
+  const [showConverter, setShowConverter] = useState(false);
+
+  // Edit State
+  const [editingTxn, setEditingTxn] = useState(null);
 
   // Calculate Net Balances for master view
   const accountStats = useMemo(() => {
@@ -73,13 +84,29 @@ const SideAccounts = () => {
 
     setAmount('');
     setReason('');
-    setDate(new Date().toISOString().split('T')[0]);
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    setDate(now.toISOString().slice(0, 16));
+  };
+
+  const handleUpdateTx = (e) => {
+    e.preventDefault();
+    if (!editingTxn) return;
+    
+    useFinance().updateSideAccountTx(editingTxn.id, {
+      amount: parseFloat(editingTxn.amount),
+      type: editingTxn.type,
+      reason: editingTxn.reason,
+      date: editingTxn.date
+    });
+    setEditingTxn(null);
   };
 
   const setShortcutDate = (days) => {
     const d = new Date();
     d.setDate(d.getDate() + days);
-    setDate(d.toISOString().split('T')[0]);
+    d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+    setDate(d.toISOString().slice(0, 16));
   };
 
   const toggleSelect = (id) => {
@@ -109,8 +136,19 @@ const SideAccounts = () => {
 
   if (selectedAccount) {
     const currentStats = accountStats[selectedAccount.id] || { income: 0, expense: 0, net: 0 };
-    const currentTxs = sideAccountTxs.filter(tx => tx.accountId === selectedAccount.id);
+    const currentTxs = sideAccountTxs.filter(tx => tx.accountId === selectedAccount.id).sort((a,b) => new Date(b.date) - new Date(a.date));
     const selectedData = currentTxs.filter(t => selectedTxns.includes(t.id));
+
+    const groupedTxs = currentTxs.reduce((acc, curr) => {
+      const dateKey = curr.date.includes('T') ? curr.date.split('T')[0] : curr.date;
+      if (!acc[dateKey]) acc[dateKey] = { transactions: [], income: 0, spent: 0 };
+      acc[dateKey].transactions.push(curr);
+      if (curr.type === 'income') acc[dateKey].income += Number(curr.amount);
+      if (curr.type === 'expense') acc[dateKey].spent += Number(curr.amount);
+      return acc;
+    }, {});
+    
+    const sortedDays = Object.keys(groupedTxs).sort((a, b) => new Date(b) - new Date(a));
 
     return (
       <div className="business-container">
@@ -171,7 +209,16 @@ const SideAccounts = () => {
               </div>
 
               <div className="input-group">
-                <label>Amount</label>
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+                  <label style={{margin: 0}}>Amount</label>
+                  <button 
+                    type="button" 
+                    onClick={() => setShowConverter(true)}
+                    style={{background: 'transparent', border: 'none', color: 'var(--accent-blue)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', cursor: 'pointer', padding: 0}}
+                  >
+                    <ArrowRightLeft size={14} /> Convert
+                  </button>
+                </div>
                 <div className="amount-input-wrapper">
                   <span className="currency-symbol">{getCurrencySymbol()}</span>
                   <input 
@@ -196,9 +243,9 @@ const SideAccounts = () => {
               </div>
 
               <div className="input-group">
-                <label>Date</label>
+                <label>Date & Time</label>
                 <input 
-                  type="date" 
+                  type="datetime-local" 
                   value={date} 
                   onChange={e => setDate(e.target.value)} 
                   required
@@ -212,19 +259,39 @@ const SideAccounts = () => {
           <div className="business-tx-history">
             <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
               <h3 style={{margin: 0}}>Transaction History</h3>
-              <div style={{display: 'flex', gap: '8px'}}>
-                {selectedTxns.length > 0 && (
-                  <button onClick={handleGenerateReceipt} style={{background: 'var(--bg-secondary)', border: '1px solid var(--accent-blue)', color: 'var(--accent-blue)', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'}}>
-                    <Download size={14} /> Print
-                  </button>
-                )}
+              <div style={{display: 'flex', gap: '8px', flexWrap: 'wrap'}}>
                 {currentTxs.length > 0 && (
-                  <button 
-                    onClick={selectedTxns.length > 0 ? handleDeleteSelected : () => clearSideAccountTxs(selectedAccount.id)}
-                    style={{background: 'rgba(255, 69, 58, 0.1)', color: 'var(--accent-red)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer'}}
-                  >
-                    {selectedTxns.length > 0 ? 'Delete Selected' : 'Clear All'}
-                  </button>
+                  <>
+                    {selectedTxns.length < currentTxs.length ? (
+                      <button 
+                        onClick={() => setSelectedTxns(currentTxs.map(t => t.id))}
+                        style={{background: 'rgba(58, 134, 255, 0.1)', color: 'var(--accent-blue)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'}}
+                      >
+                        <CheckSquare size={14} /> Select All
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => setSelectedTxns([])}
+                        style={{background: 'rgba(150, 150, 150, 0.1)', color: 'var(--text-secondary)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'}}
+                      >
+                        <Square size={14} /> Deselect All
+                      </button>
+                    )}
+                  </>
+                )}
+
+                {selectedTxns.length > 0 && (
+                  <>
+                    <button onClick={handleGenerateReceipt} style={{background: 'var(--bg-secondary)', border: '1px solid var(--accent-blue)', color: 'var(--accent-blue)', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'}}>
+                      <Download size={14} /> Print
+                    </button>
+                    <button 
+                      onClick={handleDeleteSelected}
+                      style={{background: 'rgba(255, 69, 58, 0.1)', color: 'var(--accent-red)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer'}}
+                    >
+                      Delete Selected
+                    </button>
+                  </>
                 )}
               </div>
             </div>
@@ -232,36 +299,58 @@ const SideAccounts = () => {
             {currentTxs.length === 0 ? (
               <p className="empty-state">No transactions recorded yet.</p>
             ) : (
-              <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                {currentTxs.map(tx => {
-                  const isSelected = selectedTxns.includes(tx.id);
+              <div style={{display: 'flex', flexDirection: 'column', gap: '24px'}}>
+                {sortedDays.map(dayKey => {
+                  const dayData = groupedTxs[dayKey];
+                  const dateObj = new Date(dayKey);
+                  const dateDisplay = dateObj.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
                   return (
-                    <div 
-                      key={tx.id} 
-                      className={`b-tx-row ${isSelected ? 'selected' : ''}`}
-                      onClick={() => toggleSelect(tx.id)}
-                    >
-                      <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
-                        <div className="checkbox-wrapper">
-                          {isSelected ? <CheckSquare size={18} color="var(--accent-blue)"/> : <Square size={18} color="var(--text-secondary)"/>}
-                        </div>
-                        <div>
-                          <span className="b-tx-reason">{tx.reason}</span>
-                          <span className="b-tx-date">{tx.date} ({formatDateToRelative(tx.date)})</span>
+                    <div key={dayKey} className="transaction-day-group">
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', paddingBottom: '8px', borderBottom: '1px solid var(--border-light)' }}>
+                        <h3 style={{ margin: 0, fontSize: '14px', color: 'var(--text-secondary)' }}>{dateDisplay}</h3>
+                        <div style={{ display: 'flex', gap: '12px', fontSize: '13px' }}>
+                          {dayData.income > 0 && <span style={{ color: '#32D74B' }}>+{formatCurrency(dayData.income)}</span>}
+                          {dayData.spent > 0 && <span style={{ color: '#FF453A' }}>-{formatCurrency(dayData.spent)}</span>}
                         </div>
                       </div>
-                      <div className="b-tx-actions">
-                        <span style={{color: tx.type === 'income' ? '#32D74B' : '#FF453A', fontWeight: 'bold'}}>
-                          {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                        </span>
-                        <div className="transaction-actions" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                          <button className="del-btn" onClick={(e) => { e.stopPropagation(); removeSideAccountTx(tx.id); }}>
-                            <Trash2 size={16}/>
-                          </button>
-                        </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {dayData.transactions.map(tx => {
+                          const isSelected = selectedTxns.includes(tx.id);
+                          return (
+                            <div 
+                              key={tx.id} 
+                              className={`b-tx-row ${isSelected ? 'selected' : ''}`}
+                              onClick={() => toggleSelect(tx.id)}
+                            >
+                              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                                <div className="checkbox-wrapper">
+                                  {isSelected ? <CheckSquare size={18} color="var(--accent-blue)"/> : <Square size={18} color="var(--text-secondary)"/>}
+                                </div>
+                                <div>
+                                  <span className="b-tx-reason">{tx.reason}</span>
+                                  <span className="b-tx-date">{tx.date.includes('T') ? new Date(tx.date).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : tx.date}</span>
+                                </div>
+                              </div>
+                              <div className="b-tx-actions">
+                                <span style={{color: tx.type === 'income' ? '#32D74B' : '#FF453A', fontWeight: 'bold'}}>
+                                  {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                                </span>
+                                <div className="transaction-actions" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                  <button className="del-btn" style={{color: 'var(--text-secondary)'}} onClick={(e) => { e.stopPropagation(); setEditingTxn(tx); }}>
+                                    <Edit2 size={16}/>
+                                  </button>
+                                  <button className="del-btn" onClick={(e) => { e.stopPropagation(); removeSideAccountTx(tx.id); }}>
+                                    <Trash2 size={16}/>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        })}
                       </div>
                     </div>
-                  )
+                  );
                 })}
               </div>
             )}
@@ -275,6 +364,39 @@ const SideAccounts = () => {
             onClose={() => setShowReceipt(false)} 
           />
         )}
+
+        {editingTxn && (
+          <div className="modal-overlay">
+            <div className="glass-panel" style={{padding: '24px', maxWidth: '400px', width: '90%', margin: '0 auto'}}>
+              <h3>Edit Transaction</h3>
+              <form onSubmit={handleUpdateTx} className="form-layout">
+                <div className="input-group">
+                  <label>Type</label>
+                  <div className="type-toggle">
+                    <button type="button" className={`toggle-btn ${editingTxn.type === 'income' ? 'active' : ''}`} onClick={() => setEditingTxn({...editingTxn, type: 'income'})}>Income</button>
+                    <button type="button" className={`toggle-btn expense ${editingTxn.type === 'expense' ? 'active' : ''}`} onClick={() => setEditingTxn({...editingTxn, type: 'expense'})}>Expense</button>
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label>Amount</label>
+                  <input type="number" step="0.01" value={editingTxn.amount} onChange={e => setEditingTxn({...editingTxn, amount: e.target.value})} required />
+                </div>
+                <div className="input-group">
+                  <label>Description</label>
+                  <input type="text" value={editingTxn.reason} onChange={e => setEditingTxn({...editingTxn, reason: e.target.value})} />
+                </div>
+                <div className="input-group">
+                  <label>Date & Time</label>
+                  <input type="datetime-local" value={editingTxn.date.includes('T') ? editingTxn.date.substring(0, 16) : editingTxn.date + 'T00:00'} onChange={e => setEditingTxn({...editingTxn, date: e.target.value})} required />
+                </div>
+                <div style={{display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px'}}>
+                  <button type="button" onClick={() => setEditingTxn(null)} className="submit-btn" style={{background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--text-primary)', margin: 0}}>Cancel</button>
+                  <button type="submit" className="submit-btn" style={{background: 'var(--accent-indigo, #5E5CE6)', margin: 0}}>Update</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
         
         {showDeleteConfirm && (
           <div className="modal-overlay">
@@ -285,6 +407,24 @@ const SideAccounts = () => {
                 <button onClick={() => setShowDeleteConfirm(false)} className="submit-btn" style={{background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--text-primary)', margin: 0}}>Cancel</button>
                 <button onClick={handleDeleteAccount} className="submit-btn" style={{background: 'var(--accent-red)', margin: 0}}>Delete</button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {showConverter && (
+          <div className="modal-overlay">
+            <div style={{ width: '100%', maxWidth: '400px', margin: '20px', background: 'var(--bg-secondary)', borderRadius: '16px', overflow: 'hidden', padding: '16px' }}>
+              <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px'}}>
+                <h3 style={{margin: 0}}>Convert Currency</h3>
+                <button onClick={() => setShowConverter(false)} style={{background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '20px'}}>&times;</button>
+              </div>
+              <CurrencyConverter 
+                isModal={true} 
+                onApply={(val) => {
+                  setAmount(val);
+                  setShowConverter(false);
+                }} 
+              />
             </div>
           </div>
         )}

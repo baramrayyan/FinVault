@@ -1,0 +1,82 @@
+.currency-converter-container {
+  padding: 24px 0;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.currency-converter-container.modal-mode {
+  padding: 0;
+}
+
+.converter-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.currency-selectors {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.currency-selectors .input-group {
+  flex: 1;
+  margin: 0;
+}
+
+.swap-btn {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-top: 24px; /* Align with inputs */
+  transition: all 0.2s;
+}
+
+.swap-btn:hover {
+  background: var(--bg-hover);
+  transform: scale(1.05);
+}
+
+.result-container {
+  background: rgba(58, 134, 255, 0.05);
+  border: 1px solid rgba(58, 134, 255, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.converted-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  margin-bottom: 8px;
+}
+
+.currency-label {
+  font-size: 20px;
+  color: var(--text-secondary);
+}
+
+.exchange-rate-info {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.loading-rate {
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.apply-btn {
+  margin-top: 16px;
+  background: var(--accent-green, #32D74B);
+}
