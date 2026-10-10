@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
-import { Moon, Sun, Trash2, Plus, CheckSquare, Square, LogOut } from 'lucide-react';
+import { Moon, Sun, Trash2, Plus, CheckSquare, Square, LogOut, ArrowUp, ArrowDown, Edit2, Check, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './Settings.css';
 
@@ -15,16 +15,16 @@ const ALL_TABS = [
   { id: 'stats', label: 'Yearly Stats' },
   { id: 'debts', label: 'Debts' },
   { id: 'side-accounts', label: 'Side Accounts' },
-  { id: 'convert', label: 'Convert Currency' },
-  { id: 'settings', label: 'Settings' }
+  { id: 'convert', label: 'Convert Currency' }
 ];
 
 const Settings = () => {
-  const { theme, currency, categories, tabOrder, features, updateSettings } = useFinance();
+  const { theme, currency, categories, tabOrder, features, excludedFromAvg, updateSettings } = useFinance();
   const { currentUser, logout, updateUserName, updateUserPassword } = useAuth();
   const navigate = useNavigate();
 
   const [newCat, setNewCat] = useState({ type: 'expense', name: '' });
+  const [editingCat, setEditingCat] = useState({ type: null, oldName: null, newName: '' });
   
   const [newName, setNewName] = useState(currentUser?.displayName || '');
   const [newPassword, setNewPassword] = useState('');
@@ -70,6 +70,37 @@ const Settings = () => {
     const updated = { ...categories };
     updated[type] = updated[type].filter(c => c !== name);
     updateSettings('categories', updated);
+  };
+
+  const moveCategory = (type, index, dir) => {
+    const updated = { ...categories };
+    const arr = updated[type];
+    const target = index + dir;
+    if (target < 0 || target >= arr.length) return;
+    const temp = arr[target];
+    arr[target] = arr[index];
+    arr[index] = temp;
+    updateSettings('categories', updated);
+  };
+
+  const saveEditedCategory = () => {
+    if (!editingCat.newName.trim() || editingCat.newName === editingCat.oldName) {
+      setEditingCat({ type: null, oldName: null, newName: '' });
+      return;
+    }
+    const updated = { ...categories };
+    const idx = updated[editingCat.type].indexOf(editingCat.oldName);
+    if (idx !== -1) {
+      updated[editingCat.type][idx] = editingCat.newName.trim();
+      updateSettings('categories', updated);
+      
+      // Update in excludedFromAvg if it's an expense
+      if (editingCat.type === 'expense' && excludedFromAvg?.includes(editingCat.oldName)) {
+        const newExcluded = excludedFromAvg.map(c => c === editingCat.oldName ? editingCat.newName.trim() : c);
+        updateSettings('preferences', { excludedFromAvg: newExcluded });
+      }
+    }
+    setEditingCat({ type: null, oldName: null, newName: '' });
   };
 
   const handleUpdateProfile = async (e) => {
@@ -132,6 +163,28 @@ const Settings = () => {
               value={newName} 
               onChange={e => setNewName(e.target.value)} 
               disabled={isDemo}
+              style={{
+                width: '100%', padding: '12px', borderRadius: 'var(--border-radius-sm)',
+                background: 'var(--bg-tertiary)', color: 'var(--text-primary)',
+                border: '1px solid rgba(128,128,128,0.2)', boxSizing: 'border-box'
+              }}
+            />
+          </div>
+          <div>
+            <label style={{display: 'block', marginBottom: '8px', fontSize: '14px', color: 'var(--text-secondary)'}}>Profile Picture</label>
+            <input 
+              type="file" 
+              accept="image/*"
+              onChange={e => {
+                const file = e.target.files[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    updateSettings('preferences', { avatar: reader.result });
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }} 
               style={{
                 width: '100%', padding: '12px', borderRadius: 'var(--border-radius-sm)',
                 background: 'var(--bg-tertiary)', color: 'var(--text-primary)',
@@ -218,7 +271,8 @@ const Settings = () => {
       </div>
 
       <div className="settings-section glass-panel">
-        <h3>Custom Categories</h3>
+        <h3>Categories Configuration</h3>
+        <p className="subtext" style={{marginBottom: '16px'}}>Manage your custom categories, reorder them, and select which expenses to exclude from the daily average.</p>
         
         <div className="add-category">
           <select value={newCat.type} onChange={e => setNewCat({...newCat, type: e.target.value})}>
@@ -234,28 +288,57 @@ const Settings = () => {
           <button onClick={addCategory}><Plus size={20}/></button>
         </div>
 
-        <div className="category-lists">
-          <div className="cat-col">
-            <h4>Income Categories</h4>
-            <ul>
-              {categories.income.map(c => (
-                <li key={`inc-${c}`}>
-                  {c} <button onClick={() => removeCategory('income', c)}><Trash2 size={16}/></button>
-                </li>
+        {['expense', 'income'].map(type => (
+          <div key={type} style={{marginTop: '24px'}}>
+            <h4 style={{textTransform: 'capitalize', marginBottom: '12px'}}>{type} Categories</h4>
+            <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
+              {categories[type].map((cat, idx) => (
+                <div key={`${type}-${cat}`} style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', background: 'var(--bg-tertiary)', padding: '8px 12px', borderRadius: '8px', border: (type === 'expense' && excludedFromAvg?.includes(cat)) ? '1px solid var(--accent-red)' : '1px solid transparent'}}>
+                  
+                  {editingCat.oldName === cat && editingCat.type === type ? (
+                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', flex: 1, minWidth: '200px'}}>
+                      <input 
+                        type="text" 
+                        value={editingCat.newName}
+                        onChange={e => setEditingCat({...editingCat, newName: e.target.value})}
+                        style={{padding: '4px 8px', borderRadius: '4px', border: '1px solid var(--border-light)', background: 'var(--bg-secondary)', color: 'var(--text-primary)', width: '100%'}}
+                        autoFocus
+                      />
+                      <button onClick={saveEditedCategory} style={{background: 'transparent', border: 'none', color: '#32D74B', cursor: 'pointer', padding: '4px'}}><Check size={16}/></button>
+                      <button onClick={() => setEditingCat({ type: null, oldName: null, newName: '' })} style={{background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px'}}><X size={16}/></button>
+                    </div>
+                  ) : (
+                    <div style={{display: 'flex', alignItems: 'center', gap: '12px', flex: 1}}>
+                      <span style={{fontWeight: 'bold', minWidth: '100px'}}>{cat}</span>
+                      
+                      {type === 'expense' && (
+                        <div 
+                          onClick={() => {
+                            const newExcluded = excludedFromAvg?.includes(cat) ? excludedFromAvg.filter(c => c !== cat) : [...(excludedFromAvg || []), cat];
+                            updateSettings('preferences', { excludedFromAvg: newExcluded });
+                          }}
+                          style={{display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', color: excludedFromAvg?.includes(cat) ? 'var(--accent-red)' : 'var(--text-secondary)', fontSize: '12px', background: 'var(--bg-secondary)', padding: '4px 8px', borderRadius: '4px'}}
+                        >
+                          {excludedFromAvg?.includes(cat) ? <CheckSquare size={14}/> : <Square size={14}/>}
+                          Exclude from Avg
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {editingCat.oldName !== cat && (
+                    <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
+                      <button onClick={() => setEditingCat({ type, oldName: cat, newName: cat })} style={{background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px'}}><Edit2 size={16}/></button>
+                      <button onClick={() => moveCategory(type, idx, -1)} disabled={idx === 0} style={{background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: idx === 0 ? 'not-allowed' : 'pointer', padding: '4px', opacity: idx === 0 ? 0.3 : 1}}><ArrowUp size={16}/></button>
+                      <button onClick={() => moveCategory(type, idx, 1)} disabled={idx === categories[type].length - 1} style={{background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: idx === categories[type].length - 1 ? 'not-allowed' : 'pointer', padding: '4px', opacity: idx === categories[type].length - 1 ? 0.3 : 1}}><ArrowDown size={16}/></button>
+                      <button onClick={() => removeCategory(type, cat)} style={{background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px', marginLeft: '4px'}}><Trash2 size={16}/></button>
+                    </div>
+                  )}
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
-          <div className="cat-col">
-            <h4>Expense Categories</h4>
-            <ul>
-              {categories.expense.map(c => (
-                <li key={`exp-${c}`}>
-                  {c} <button onClick={() => removeCategory('expense', c)}><Trash2 size={16}/></button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        ))}
       </div>
     </div>
   );

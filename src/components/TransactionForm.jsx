@@ -48,9 +48,20 @@ const TransactionForm = ({ initialTransaction = null, onCancel = null }) => {
     const paddedDay = day.toString().padStart(2, '0');
     const fullDate = `${yearMonth}-${paddedDay}T${time}:00`;
     
+    let parsedAmount = parseFloat(amount);
+    try {
+      const sanitized = amount.toString().replace(/[^0-9+\-*/.]/g, '');
+      if (sanitized) {
+        const result = new Function('return ' + sanitized)();
+        if (!isNaN(result) && isFinite(result)) {
+          parsedAmount = result;
+        }
+      }
+    } catch(e){}
+
     const txData = {
       type,
-      amount: parseFloat(amount),
+      amount: parsedAmount,
       category,
       reason,
       date: fullDate
@@ -109,10 +120,21 @@ const TransactionForm = ({ initialTransaction = null, onCancel = null }) => {
           <div className="amount-input-wrapper">
             <span className="currency-symbol">{getCurrencySymbol()}</span>
             <input 
-              type="number" 
-              step="0.01"
+              type="text" 
+              inputMode="decimal"
               value={amount} 
               onChange={e => setAmount(e.target.value)} 
+              onBlur={() => {
+                try {
+                  const sanitized = amount.toString().replace(/[^0-9+\-*/.]/g, '');
+                  if (sanitized) {
+                    const result = new Function('return ' + sanitized)();
+                    if (!isNaN(result) && isFinite(result)) {
+                      setAmount(result.toFixed(2).toString());
+                    }
+                  }
+                } catch(e) {}
+              }}
               placeholder="0.00"
               required
             />

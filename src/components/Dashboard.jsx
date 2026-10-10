@@ -5,7 +5,7 @@ import './Dashboard.css';
 import './DashboardDebts.css';
 
 const Dashboard = () => {
-  const { income, expense, savingsGoal, remaining, debts, loading, formatCurrency, savingsAdded, settleDebt, formatDateToRelative, monthlyTransactions, features, selectedMonth, dashboardLayout, updateSettings } = useFinance();
+  const { income, expense, savingsGoal, remaining, debts, loading, formatCurrency, savingsAdded, settleDebt, formatDateToRelative, monthlyTransactions, features, selectedMonth, dashboardLayout, updateSettings, excludedFromAvg } = useFinance();
   const [isEditing, setIsEditing] = useState(false);
   const [localLayout, setLocalLayout] = useState([]);
 
@@ -89,7 +89,10 @@ const Dashboard = () => {
     const isCurrentMonth = selectedMonth === new Date().toISOString().slice(0, 7);
     averageDivisor = isCurrentMonth ? new Date().getDate() : new Date(parseInt(selectedMonth.split('-')[0]), parseInt(selectedMonth.split('-')[1]), 0).getDate();
   }
-  const averageDailySpend = totalExpense / (averageDivisor || 1);
+  const totalExpenseForAvg = monthlyTransactions
+    .filter(t => t.type === 'expense' && (!excludedFromAvg || !excludedFromAvg.includes(t.category)))
+    .reduce((acc, curr) => acc + Number(curr.amount), 0);
+  const averageDailySpend = totalExpenseForAvg / (averageDivisor || 1);
 
   const netIncome = income - expense;
   const topExpense = categoryData.length > 0 ? categoryData[0] : null;

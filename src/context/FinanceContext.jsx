@@ -26,6 +26,8 @@ export const FinanceProvider = ({ children }) => {
   const [currency, setCurrency] = useState('JOD');
   const [tabOrder, setTabOrder] = useState(['dashboard', 'add', 'history', 'savings']);
   const [categories, setCategories] = useState(DEFAULT_CATEGORIES);
+  const [avatar, setAvatar] = useState(null);
+  const [excludedFromAvg, setExcludedFromAvg] = useState([]);
   const [dashboardLayout, setDashboardLayout] = useState([
     { id: 'balance', visible: true, label: 'Remaining Balance' },
     { id: 'stats', visible: true, label: 'Income & Expense Stats' },
@@ -118,6 +120,8 @@ export const FinanceProvider = ({ children }) => {
               if (d.data().tabOrder) setTabOrder(d.data().tabOrder);
               if (d.data().features) setFeatures(d.data().features);
               if (d.data().dashboardLayout) setDashboardLayout(d.data().dashboardLayout);
+              if (d.data().avatar !== undefined) setAvatar(d.data().avatar);
+              if (d.data().excludedFromAvg) setExcludedFromAvg(d.data().excludedFromAvg);
             }
             if(d.id === 'categories') {
               setCategories({
@@ -304,6 +308,8 @@ export const FinanceProvider = ({ children }) => {
           if(data.tabOrder) setTabOrder(data.tabOrder); 
           if(data.features) setFeatures(data.features);
           if(data.dashboardLayout) setDashboardLayout(data.dashboardLayout);
+          if(data.avatar !== undefined) setAvatar(data.avatar);
+          if(data.excludedFromAvg) setExcludedFromAvg(data.excludedFromAvg);
         }
         if(type === 'categories') setCategories(data);
         return;
@@ -435,7 +441,7 @@ export const FinanceProvider = ({ children }) => {
   return (
     <FinanceContext.Provider value={{
       transactions, monthlyTransactions, debts, sideAccounts, sideAccountTxs, loading, savingsGoal, income, expense, remaining, savingsAdded,
-      theme, currency, categories, selectedMonth, setSelectedMonth, tabOrder, features, dashboardLayout,
+      theme, currency, categories, selectedMonth, setSelectedMonth, tabOrder, features, dashboardLayout, avatar, excludedFromAvg,
       addTransaction, removeTransaction, updateTransaction, clearTransactions, clearSavingsHistory, completeSavingsGoal, addDebt, removeDebt, settleDebt, clearDebtHistory, addSideAccountTx, removeSideAccountTx, updateSideAccountTx, clearSideAccountTxs, addSideAccount, removeSideAccount, updateSettings, formatCurrency, getCurrencySymbol, formatDateToRelative
     }}>
       {children}

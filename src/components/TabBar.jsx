@@ -22,6 +22,7 @@ const TabBar = () => {
   return (
     <nav className="tab-bar">
       {tabOrder.map(tabId => {
+        if (tabId === 'settings' || tabId === 'more') return null;
         if (tabId === 'savings' && features?.savings === false) return null;
         if (tabId === 'debts' && features?.debts === false) return null;
         if (tabId === 'side-accounts' && features?.accounts === false) return null;
@@ -38,14 +39,6 @@ const TabBar = () => {
         );
       })}
       
-      <NavLink to="/more" className={({isActive}) => isActive ? "tab-item active" : "tab-item"}>
-        <div style={{display: 'flex', gap: '2px', alignItems: 'center', justifyContent: 'center', height: '24px'}}>
-           <div style={{width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor'}} />
-           <div style={{width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor'}} />
-           <div style={{width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor'}} />
-        </div>
-        <span>More</span>
-      </NavLink>
     </nav>
   );
 };

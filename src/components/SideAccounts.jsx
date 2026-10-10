@@ -4,9 +4,10 @@ import { Briefcase, TrendingUp, TrendingDown, Trash2, Edit2, ArrowLeft, Download
 import ReceiptModal from './ReceiptModal';
 import CurrencyConverter from './CurrencyConverter';
 import './SideAccounts.css';
+import './TransactionList.css';
 
 const SideAccounts = () => {
-  const { sideAccounts, sideAccountTxs, addSideAccount, removeSideAccount, addSideAccountTx, removeSideAccountTx, clearSideAccountTxs, formatCurrency, getCurrencySymbol, formatDateToRelative, selectedMonth } = useFinance();
+  const { sideAccounts, sideAccountTxs, addSideAccount, removeSideAccount, addSideAccountTx, removeSideAccountTx, clearSideAccountTxs, formatCurrency, getCurrencySymbol, formatDateToRelative, selectedMonth, updateSideAccountTx } = useFinance();
   
   // Master View States
   const [bName, setBName] = useState('');
@@ -74,9 +75,20 @@ const SideAccounts = () => {
     e.preventDefault();
     if (!selectedAccount || !amount || !date) return;
     
+    let parsedAmount = parseFloat(amount);
+    try {
+      const sanitized = amount.toString().replace(/[^0-9+\-*/.]/g, '');
+      if (sanitized) {
+        const result = new Function('return ' + sanitized)();
+        if (!isNaN(result) && isFinite(result)) {
+          parsedAmount = result;
+        }
+      }
+    } catch(e){}
+
     addSideAccountTx({
       accountId: selectedAccount.id,
-      amount: parseFloat(amount),
+      amount: parsedAmount,
       type,
       reason,
       date
@@ -93,8 +105,19 @@ const SideAccounts = () => {
     e.preventDefault();
     if (!editingTxn) return;
     
-    useFinance().updateSideAccountTx(editingTxn.id, {
-      amount: parseFloat(editingTxn.amount),
+    let parsedAmount = parseFloat(editingTxn.amount);
+    try {
+      const sanitized = editingTxn.amount.toString().replace(/[^0-9+\-*/.]/g, '');
+      if (sanitized) {
+        const result = new Function('return ' + sanitized)();
+        if (!isNaN(result) && isFinite(result)) {
+          parsedAmount = result;
+        }
+      }
+    } catch(e){}
+
+    updateSideAccountTx(editingTxn.id, {
+      amount: parsedAmount,
       type: editingTxn.type,
       reason: editingTxn.reason,
       date: editingTxn.date
@@ -222,10 +245,21 @@ const SideAccounts = () => {
                 <div className="amount-input-wrapper">
                   <span className="currency-symbol">{getCurrencySymbol()}</span>
                   <input 
-                    type="number" 
-                    step="0.01"
+                    type="text" 
+                    inputMode="decimal"
                     value={amount} 
                     onChange={e => setAmount(e.target.value)} 
+                    onBlur={() => {
+                      try {
+                        const sanitized = amount.toString().replace(/[^0-9+\-*/.]/g, '');
+                        if (sanitized) {
+                          const result = new Function('return ' + sanitized)();
+                          if (!isNaN(result) && isFinite(result)) {
+                            setAmount(result.toFixed(2).toString());
+                          }
+                        }
+                      } catch(e) {}
+                    }}
                     placeholder="0.00" 
                     required
                   />
@@ -320,28 +354,39 @@ const SideAccounts = () => {
                           return (
                             <div 
                               key={tx.id} 
-                              className={`b-tx-row ${isSelected ? 'selected' : ''}`}
+                              className={`transaction-card glass-panel ${isSelected ? 'selected' : ''}`}
                               onClick={() => toggleSelect(tx.id)}
                             >
-                              <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                              <div className="transaction-info">
                                 <div className="checkbox-wrapper">
-                                  {isSelected ? <CheckSquare size={18} color="var(--accent-blue)"/> : <Square size={18} color="var(--text-secondary)"/>}
+                                  {isSelected ? <CheckSquare size={20} color="var(--accent-blue)"/> : <Square size={20} color="var(--text-secondary)"/>}
                                 </div>
+                                <div className={`t-icon ${tx.type}`}><FileText size={18}/></div>
                                 <div>
-                                  <span className="b-tx-reason">{tx.reason}</span>
-                                  <span className="b-tx-date">{tx.date.includes('T') ? new Date(tx.date).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : tx.date}</span>
+                                  <h4>{tx.reason || 'Transaction'}</h4>
+                                  <span className="t-category">
+                                    {tx.date.includes('T') ? new Date(tx.date).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}) : tx.date}
+                                  </span>
                                 </div>
                               </div>
-                              <div className="b-tx-actions">
-                                <span style={{color: tx.type === 'income' ? '#32D74B' : '#FF453A', fontWeight: 'bold'}}>
+                              <div className="transaction-actions">
+                                <h3 className={`t-amount ${tx.type}`}>
                                   {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
-                                </span>
-                                <div className="transaction-actions" style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
-                                  <button className="del-btn" style={{color: 'var(--text-secondary)'}} onClick={(e) => { e.stopPropagation(); setEditingTxn(tx); }}>
-                                    <Edit2 size={16}/>
+                                </h3>
+                                <div className="action-buttons">
+                                  <button 
+                                    className="icon-btn edit-btn" 
+                                    title="Edit Transaction"
+                                    onClick={(e) => { e.stopPropagation(); setEditingTxn(tx); }}
+                                  >
+                                    <Edit2 size={20}/>
                                   </button>
-                                  <button className="del-btn" onClick={(e) => { e.stopPropagation(); removeSideAccountTx(tx.id); }}>
-                                    <Trash2 size={16}/>
+                                  <button 
+                                    className="icon-btn delete-btn" 
+                                    title="Delete Transaction"
+                                    onClick={(e) => { e.stopPropagation(); removeSideAccountTx(tx.id); }}
+                                  >
+                                    <Trash2 size={20}/>
                                   </button>
                                 </div>
                               </div>
@@ -379,7 +424,24 @@ const SideAccounts = () => {
                 </div>
                 <div className="input-group">
                   <label>Amount</label>
-                  <input type="number" step="0.01" value={editingTxn.amount} onChange={e => setEditingTxn({...editingTxn, amount: e.target.value})} required />
+                  <input 
+                    type="text" 
+                    inputMode="decimal"
+                    value={editingTxn.amount} 
+                    onChange={e => setEditingTxn({...editingTxn, amount: e.target.value})} 
+                    onBlur={() => {
+                      try {
+                        const sanitized = editingTxn.amount.toString().replace(/[^0-9+\-*/.]/g, '');
+                        if (sanitized) {
+                          const result = new Function('return ' + sanitized)();
+                          if (!isNaN(result) && isFinite(result)) {
+                            setEditingTxn({...editingTxn, amount: result.toFixed(2).toString()});
+                          }
+                        }
+                      } catch(e) {}
+                    }}
+                    required 
+                  />
                 </div>
                 <div className="input-group">
                   <label>Description</label>
