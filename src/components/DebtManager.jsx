@@ -4,7 +4,7 @@ import { ArrowDownRight, ArrowUpRight, CheckCircle2, Clock, Trash2 } from 'lucid
 import './DebtManager.css';
 
 const DebtManager = () => {
-  const { debts, addDebt, settleDebt, removeDebt, clearDebtHistory, getCurrencySymbol, formatCurrency, formatDateToRelative, addTransaction } = useFinance();
+  const { debts, addDebt, settleDebt, removeDebt, clearDebtHistory, getCurrencySymbol, formatCurrency, formatDateToRelative, addTransaction, confirmAction } = useFinance();
   const [person, setPerson] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState('owe');
@@ -189,7 +189,7 @@ const DebtManager = () => {
                 </button>
                 <button 
                   className="del-btn" 
-                  onClick={() => removeDebt(debt.id)}
+                  onClick={async () => { if(await confirmAction('Delete this debt record?')) removeDebt(debt.id) }}
                   title="Delete"
                   style={{background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px'}}
                 >
@@ -206,7 +206,7 @@ const DebtManager = () => {
           <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '32px', marginBottom: '16px'}}>
             <h3 className="section-title" style={{ margin: 0 }}>Settled History</h3>
             <button 
-              onClick={clearDebtHistory}
+              onClick={async () => { if(await confirmAction('Are you sure you want to clear all settled debts?')) clearDebtHistory() }}
               style={{background: 'rgba(255, 69, 58, 0.1)', color: 'var(--accent-red)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', cursor: 'pointer'}}
             >
               Clear All
@@ -230,7 +230,7 @@ const DebtManager = () => {
                   </h3>
                   <button 
                     className="del-btn" 
-                    onClick={() => removeDebt(debt.id)}
+                    onClick={async () => { if(await confirmAction('Delete this debt record?')) removeDebt(debt.id) }}
                     title="Delete"
                     style={{background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px'}}
                   >

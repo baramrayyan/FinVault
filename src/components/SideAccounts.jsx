@@ -7,7 +7,7 @@ import './SideAccounts.css';
 import './TransactionList.css';
 
 const SideAccounts = () => {
-  const { sideAccounts, sideAccountTxs, addSideAccount, removeSideAccount, addSideAccountTx, removeSideAccountTx, clearSideAccountTxs, formatCurrency, getCurrencySymbol, formatDateToRelative, selectedMonth, updateSideAccountTx } = useFinance();
+  const { sideAccounts, sideAccountTxs, addSideAccount, removeSideAccount, updateSideAccount, addSideAccountTx, removeSideAccountTx, clearSideAccountTxs, formatCurrency, getCurrencySymbol, formatDateToRelative, selectedMonth, updateSideAccountTx, confirmAction } = useFinance();
   
   // Master View States
   const [bName, setBName] = useState('');
@@ -17,6 +17,7 @@ const SideAccounts = () => {
   // Selected Account State
   const [selectedAccount, setSelectedAccount] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editingAccount, setEditingAccount] = useState(null);
 
   // Detail View States
   const [amount, setAmount] = useState('');
@@ -145,10 +146,23 @@ const SideAccounts = () => {
   };
 
   const handleDeleteSelected = async () => {
+    if (!await confirmAction(`Are you sure you want to delete ${selectedTxns.length} selected transactions?`)) return;
     for (const id of selectedTxns) {
       await removeSideAccountTx(id);
     }
     setSelectedTxns([]);
+  };
+
+  const handleUpdateAccount = (e) => {
+    e.preventDefault();
+    if (!editingAccount.name) return;
+    updateSideAccount(editingAccount.id, {
+      name: editingAccount.name.trim(),
+      description: editingAccount.description.trim(),
+      thumbnail: editingAccount.thumbnail
+    });
+    setSelectedAccount(prev => ({ ...prev, name: editingAccount.name.trim(), description: editingAccount.description.trim(), thumbnail: editingAccount.thumbnail }));
+    setEditingAccount(null);
   };
 
   const handleDeleteAccount = () => {
@@ -191,12 +205,20 @@ const SideAccounts = () => {
             <div>
               <h2 style={{margin: 0}}>{selectedAccount.name}</h2>
               <p style={{color: 'var(--text-secondary)', margin: '4px 0 0 0'}}>{selectedAccount.description}</p>
-              <button 
-                onClick={() => setShowDeleteConfirm(true)}
-                style={{background: 'transparent', border: 'none', color: 'var(--accent-red)', padding: 0, marginTop: '8px', cursor: 'pointer', fontSize: '12px'}}
-              >
-                Delete Account
-              </button>
+              <div style={{display: 'flex', gap: '12px', marginTop: '8px'}}>
+                <button 
+                  onClick={() => setEditingAccount(selectedAccount)}
+                  style={{background: 'transparent', border: 'none', color: 'var(--accent-blue)', padding: 0, cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px'}}
+                >
+                  <Edit2 size={12} /> Edit Account
+                </button>
+                <button 
+                  onClick={() => setShowDeleteConfirm(true)}
+                  style={{background: 'transparent', border: 'none', color: 'var(--accent-red)', padding: 0, cursor: 'pointer', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px'}}
+                >
+                  <Trash2 size={12} /> Delete Account
+                </button>
+              </div>
             </div>
           </div>
           <div className="detail-stats">
@@ -384,7 +406,7 @@ const SideAccounts = () => {
                                   <button 
                                     className="icon-btn delete-btn" 
                                     title="Delete Transaction"
-                                    onClick={(e) => { e.stopPropagation(); removeSideAccountTx(tx.id); }}
+                                    onClick={async (e) => { e.stopPropagation(); if(await confirmAction('Delete this transaction?')) removeSideAccountTx(tx.id); }}
                                   >
                                     <Trash2 size={20}/>
                                   </button>
@@ -469,6 +491,58 @@ const SideAccounts = () => {
                 <button onClick={() => setShowDeleteConfirm(false)} className="submit-btn" style={{background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--text-primary)', margin: 0}}>Cancel</button>
                 <button onClick={handleDeleteAccount} className="submit-btn" style={{background: 'var(--accent-red)', margin: 0}}>Delete</button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {editingAccount && (
+          <div className="modal-overlay">
+            <div className="glass-panel" style={{padding: '24px', maxWidth: '400px', width: '90%', margin: '0 auto'}}>
+              <h3>Edit Account</h3>
+              <form onSubmit={handleUpdateAccount} className="form-layout">
+                <div className="input-group">
+                  <label>Account Name</label>
+                  <input 
+                    type="text" 
+                    value={editingAccount.name} 
+                    onChange={e => setEditingAccount({...editingAccount, name: e.target.value})} 
+                    required
+                  />
+                </div>
+                
+                <div className="input-group">
+                  <label>Description</label>
+                  <input 
+                    type="text" 
+                    value={editingAccount.description} 
+                    onChange={e => setEditingAccount({...editingAccount, description: e.target.value})} 
+                  />
+                </div>
+
+                <div className="input-group">
+                  <label>Thumbnail Photo (Optional)</label>
+                  <input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={e => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          setEditingAccount({...editingAccount, thumbnail: reader.result});
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }} 
+                    style={{padding: '10px'}}
+                  />
+                </div>
+                
+                <div style={{display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '16px'}}>
+                  <button type="button" onClick={() => setEditingAccount(null)} className="submit-btn" style={{background: 'transparent', border: '1px solid var(--text-secondary)', color: 'var(--text-primary)', margin: 0}}>Cancel</button>
+                  <button type="submit" className="submit-btn" style={{background: 'var(--accent-indigo, #5E5CE6)', margin: 0}}>Save Changes</button>
+                </div>
+              </form>
             </div>
           </div>
         )}

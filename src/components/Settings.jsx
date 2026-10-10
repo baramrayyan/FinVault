@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import AvatarEditor from 'react-avatar-editor';
 import { useFinance } from '../context/FinanceContext';
 import { useAuth } from '../context/AuthContext';
 import { Moon, Sun, Trash2, Plus, CheckSquare, Square, LogOut, ArrowUp, ArrowDown, Edit2, Check, X } from 'lucide-react';
@@ -19,12 +20,17 @@ const ALL_TABS = [
 ];
 
 const Settings = () => {
-  const { theme, currency, categories, tabOrder, features, excludedFromAvg, updateSettings } = useFinance();
+  const { theme, currency, categories, tabOrder, features, excludedFromAvg, updateSettings, confirmAction } = useFinance();
   const { currentUser, logout, updateUserName, updateUserPassword } = useAuth();
   const navigate = useNavigate();
 
   const [newCat, setNewCat] = useState({ type: 'expense', name: '' });
   const [editingCat, setEditingCat] = useState({ type: null, oldName: null, newName: '' });
+  
+  const [avatarFile, setAvatarFile] = useState(null);
+  const [avatarScale, setAvatarScale] = useState(1.2);
+  const editorRef = useRef(null);
+  const [showAvatarModal, setShowAvatarModal] = useState(false);
   
   const [newName, setNewName] = useState(currentUser?.displayName || '');
   const [newPassword, setNewPassword] = useState('');
@@ -103,6 +109,15 @@ const Settings = () => {
     setEditingCat({ type: null, oldName: null, newName: '' });
   };
 
+  const handleSaveAvatar = () => {
+    if (editorRef.current) {
+      const canvasScaled = editorRef.current.getImageScaledToCanvas();
+      const dataUrl = canvasScaled.toDataURL('image/jpeg', 0.8);
+      updateSettings('preferences', { avatar: dataUrl });
+      setShowAvatarModal(false);
+    }
+  };
+
   const handleUpdateProfile = async (e) => {
     e.preventDefault();
     if (isDemo) return setAuthMsg({ type: 'error', text: "Demo account cannot be modified." });
@@ -178,12 +193,11 @@ const Settings = () => {
               onChange={e => {
                 const file = e.target.files[0];
                 if (file) {
-                  const reader = new FileReader();
-                  reader.onloadend = () => {
-                    updateSettings('preferences', { avatar: reader.result });
-                  };
-                  reader.readAsDataURL(file);
+                  setAvatarFile(file);
+                  setAvatarScale(1.2);
+                  setShowAvatarModal(true);
                 }
+                e.target.value = null;
               }} 
               style={{
                 width: '100%', padding: '12px', borderRadius: 'var(--border-radius-sm)',
@@ -331,7 +345,7 @@ const Settings = () => {
                       <button onClick={() => setEditingCat({ type, oldName: cat, newName: cat })} style={{background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px'}}><Edit2 size={16}/></button>
                       <button onClick={() => moveCategory(type, idx, -1)} disabled={idx === 0} style={{background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: idx === 0 ? 'not-allowed' : 'pointer', padding: '4px', opacity: idx === 0 ? 0.3 : 1}}><ArrowUp size={16}/></button>
                       <button onClick={() => moveCategory(type, idx, 1)} disabled={idx === categories[type].length - 1} style={{background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: idx === categories[type].length - 1 ? 'not-allowed' : 'pointer', padding: '4px', opacity: idx === categories[type].length - 1 ? 0.3 : 1}}><ArrowDown size={16}/></button>
-                      <button onClick={() => removeCategory(type, cat)} style={{background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px', marginLeft: '4px'}}><Trash2 size={16}/></button>
+                      <button onClick={async () => { if(await confirmAction('Delete this category?')) removeCategory(type, cat) }} style={{background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px', marginLeft: '4px'}}><Trash2 size={16}/></button>
                     </div>
                   )}
                 </div>
@@ -340,6 +354,41 @@ const Settings = () => {
           </div>
         ))}
       </div>
+
+      {showAvatarModal && (
+        <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+          <div className="glass-panel" style={{padding: '24px', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', maxWidth: '90vw'}}>
+            <h3>Resize Profile Picture</h3>
+            <AvatarEditor
+              ref={editorRef}
+              image={avatarFile}
+              width={200}
+              height={200}
+              border={20}
+              borderRadius={100}
+              color={[0, 0, 0, 0.6]}
+              scale={avatarScale}
+              rotate={0}
+            />
+            <div style={{width: '100%', display: 'flex', alignItems: 'center', gap: '12px'}}>
+              <span style={{fontSize: '12px', color: 'var(--text-secondary)'}}>Zoom</span>
+              <input 
+                type="range" 
+                min="1" 
+                max="3" 
+                step="0.01" 
+                value={avatarScale} 
+                onChange={(e) => setAvatarScale(parseFloat(e.target.value))} 
+                style={{flex: 1}}
+              />
+            </div>
+            <div style={{display: 'flex', gap: '12px', width: '100%'}}>
+              <button onClick={() => setShowAvatarModal(false)} style={{flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid var(--border-light)', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold'}}>Cancel</button>
+              <button onClick={handleSaveAvatar} style={{flex: 1, padding: '10px', borderRadius: '8px', border: 'none', background: 'var(--accent-blue)', color: '#fff', cursor: 'pointer', fontWeight: 'bold'}}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

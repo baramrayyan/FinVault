@@ -19,6 +19,7 @@ export const FinanceProvider = ({ children }) => {
   const [sideAccountTxs, setSideAccountTxs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // 'YYYY-MM' or 'all'
+  const [confirmConfig, setConfirmConfig] = useState(null);
   
   // Settings & Customization
   const [savingsGoal, setSavingsGoal] = useState(0);
@@ -384,6 +385,16 @@ export const FinanceProvider = ({ children }) => {
     } catch (e) { console.error(e); }
   };
 
+  const updateSideAccount = async (id, updatedData) => {
+    try {
+      if (db.app.options.apiKey === "YOUR_API_KEY") {
+        setSideAccounts(prev => prev.map(a => a.id === id ? { ...a, ...updatedData } : a));
+        return;
+      }
+      await setDoc(doc(db, "sideAccounts", id), updatedData, { merge: true });
+    } catch (e) { console.error(e); }
+  };
+
   // Calculations
   const monthlyTransactions = transactions.filter(t => 
     selectedMonth === 'all' || t.date.startsWith(selectedMonth)
@@ -438,13 +449,41 @@ export const FinanceProvider = ({ children }) => {
     return date > now ? `in ${str.trim()}` : `${str.trim()} ago`;
   };
 
+  const confirmAction = (message) => {
+    return new Promise((resolve) => {
+      setConfirmConfig({
+        message,
+        onConfirm: () => {
+          setConfirmConfig(null);
+          resolve(true);
+        },
+        onCancel: () => {
+          setConfirmConfig(null);
+          resolve(false);
+        }
+      });
+    });
+  };
+
   return (
     <FinanceContext.Provider value={{
       transactions, monthlyTransactions, debts, sideAccounts, sideAccountTxs, loading, savingsGoal, income, expense, remaining, savingsAdded,
       theme, currency, categories, selectedMonth, setSelectedMonth, tabOrder, features, dashboardLayout, avatar, excludedFromAvg,
-      addTransaction, removeTransaction, updateTransaction, clearTransactions, clearSavingsHistory, completeSavingsGoal, addDebt, removeDebt, settleDebt, clearDebtHistory, addSideAccountTx, removeSideAccountTx, updateSideAccountTx, clearSideAccountTxs, addSideAccount, removeSideAccount, updateSettings, formatCurrency, getCurrencySymbol, formatDateToRelative
+      addTransaction, removeTransaction, updateTransaction, clearTransactions, clearSavingsHistory, completeSavingsGoal, addDebt, removeDebt, settleDebt, clearDebtHistory, addSideAccountTx, removeSideAccountTx, updateSideAccountTx, clearSideAccountTxs, addSideAccount, removeSideAccount, updateSideAccount, updateSettings, formatCurrency, getCurrencySymbol, formatDateToRelative, confirmAction
     }}>
       {children}
+      {confirmConfig && (
+        <div className="modal-overlay" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'}}>
+          <div className="glass-panel" style={{width: '100%', maxWidth: '350px', background: 'var(--bg-secondary)', padding: '24px', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', animation: 'fadeIn 0.2s ease-out'}}>
+            <h3 style={{margin: '0 0 12px 0'}}>Confirm Action</h3>
+            <p style={{margin: '0 0 24px 0', color: 'var(--text-secondary)', lineHeight: '1.5', fontSize: '15px'}}>{confirmConfig.message}</p>
+            <div style={{display: 'flex', gap: '12px', justifyContent: 'flex-end'}}>
+              <button onClick={confirmConfig.onCancel} style={{padding: '10px 16px', borderRadius: '8px', border: '1px solid var(--text-secondary)', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold'}}>Cancel</button>
+              <button onClick={confirmConfig.onConfirm} style={{padding: '10px 16px', borderRadius: '8px', border: 'none', background: 'var(--accent-red)', color: '#fff', cursor: 'pointer', fontWeight: 'bold'}}>Confirm</button>
+            </div>
+          </div>
+        </div>
+      )}
     </FinanceContext.Provider>
   );
 };

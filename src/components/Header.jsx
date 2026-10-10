@@ -87,21 +87,26 @@ const Header = () => {
   };
 
   return (
-    <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', position: 'relative', zIndex: 100, flexWrap: 'wrap', gap: '12px' }}>
+    <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', marginTop: '16px', position: 'relative', zIndex: 100, flexWrap: 'wrap', gap: '12px' }}>
       <NavLink to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', textDecoration: 'none', color: 'inherit' }}>
         <img src={`${import.meta.env.BASE_URL}logo.png`} alt="FinVault Logo" className="header-logo" style={{width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover'}} />
         <h1 style={{margin: 0, fontSize: '24px'}}>FinVault</h1>
       </NavLink>
       
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginLeft: 'auto' }}>
-        <div className="custom-dropdown-container" ref={dropdownRef} style={{ height: '36px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginLeft: 'auto' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginRight: '4px' }} className="welcome-text">
+          <span style={{ fontSize: '15px', color: 'var(--text-secondary)', fontWeight: '500' }}>Welcome,</span>
+          <span style={{ fontSize: '16px', color: 'var(--text-primary)', fontWeight: 'bold' }}>{currentUser?.displayName?.split(' ')[0] || 'User'}</span>
+        </div>
+        
+        <div className="custom-dropdown-container" ref={dropdownRef} style={{ height: '44px' }}>
           <div 
             className="custom-dropdown-trigger glass-panel" 
             onClick={() => setIsOpen(!isOpen)}
-            style={{ height: '100%', padding: '0 12px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', boxSizing: 'border-box' }}
+            style={{ height: '100%', padding: '0 16px', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', boxSizing: 'border-box' }}
           >
             <Calendar size={18} color="var(--text-secondary)" />
-            <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--text-primary)' }}>{getLabel()}</span>
+            <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--text-primary)' }}>{getLabel()}</span>
             <ChevronDown size={16} color="var(--text-secondary)" style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}/>
           </div>
           
@@ -149,12 +154,12 @@ const Header = () => {
           )}
         </div>
 
-        <div style={{ position: 'relative', height: '36px' }} ref={profileMenuRef}>
+        <div style={{ position: 'relative', height: '44px' }} ref={profileMenuRef}>
           <div 
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'var(--bg-tertiary)', cursor: 'pointer', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--accent-blue)', boxSizing: 'border-box' }}
+            style={{ width: '44px', height: '44px', borderRadius: '50%', background: 'var(--bg-tertiary)', cursor: 'pointer', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid var(--accent-blue)', boxSizing: 'border-box' }}
           >
-            {avatar ? <img src={avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontWeight: 'bold' }}>{currentUser?.displayName?.charAt(0) || 'U'}</span>}
+            {avatar ? <img src={avatar} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span style={{ fontWeight: 'bold', fontSize: '18px' }}>{currentUser?.displayName?.charAt(0) || 'U'}</span>}
           </div>
           {showProfileMenu && (
             <div className="glass-panel" style={{ position: 'absolute', top: '100%', right: 0, marginTop: '8px', padding: '8px', minWidth: '150px', display: 'flex', flexDirection: 'column', gap: '4px', zIndex: 200, animation: 'fadeIn 0.2s ease-out' }}>

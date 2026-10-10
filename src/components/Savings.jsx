@@ -5,7 +5,7 @@ import ReceiptModal from './ReceiptModal';
 import './Savings.css';
 
 const Savings = () => {
-  const { transactions, savingsGoal, updateSettings, addTransaction, removeTransaction, clearSavingsHistory, completeSavingsGoal, formatCurrency, savingsAdded, getCurrencySymbol, formatDateToRelative } = useFinance();
+  const { transactions, savingsGoal, updateSettings, addTransaction, removeTransaction, clearSavingsHistory, completeSavingsGoal, formatCurrency, savingsAdded, getCurrencySymbol, formatDateToRelative, confirmAction } = useFinance();
   const [newGoal, setNewGoal] = useState('');
   const [addAmount, setAddAmount] = useState('');
   
@@ -177,7 +177,7 @@ const Savings = () => {
           )}
           {savingsTxs.length > 0 && (
             <button 
-              onClick={clearSavingsHistory}
+              onClick={async () => { if(await confirmAction('Are you sure you want to clear all savings history?')) clearSavingsHistory() }}
               style={{background: 'rgba(255, 69, 58, 0.1)', color: 'var(--accent-red)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center'}}
             >
               Clear All
@@ -216,7 +216,7 @@ const Savings = () => {
                     +{formatCurrency(t.amount)}
                   </h3>
                   <button 
-                    onClick={(e) => { e.stopPropagation(); removeTransaction(t.id); }}
+                    onClick={async (e) => { e.stopPropagation(); if(await confirmAction('Delete this transaction?')) removeTransaction(t.id); }}
                     style={{background: 'transparent', border: 'none', color: 'var(--accent-red)', cursor: 'pointer', padding: '4px'}}
                     title="Delete"
                   >

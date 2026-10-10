@@ -6,7 +6,7 @@ import TransactionForm from './TransactionForm';
 import './TransactionList.css';
 
 const TransactionList = () => {
-  const { monthlyTransactions, formatCurrency, removeTransaction, clearTransactions, formatDateToRelative } = useFinance();
+  const { monthlyTransactions, formatCurrency, removeTransaction, clearTransactions, formatDateToRelative, confirmAction } = useFinance();
   const [selectedTxns, setSelectedTxns] = useState([]);
   const [showReceipt, setShowReceipt] = useState(false);
   const [editingTxn, setEditingTxn] = useState(null);
@@ -26,6 +26,7 @@ const TransactionList = () => {
   };
 
   const handleDeleteSelected = async () => {
+    if (!await confirmAction(`Are you sure you want to delete ${selectedTxns.length} selected transactions?`)) return;
     for (const id of selectedTxns) {
       await removeTransaction(id);
     }
@@ -156,7 +157,7 @@ const TransactionList = () => {
                               <Edit2 size={20} />
                             </button>
                             <button 
-                              onClick={(e) => { e.stopPropagation(); removeTransaction(t.id); }}
+                              onClick={async (e) => { e.stopPropagation(); if (await confirmAction('Delete this transaction?')) removeTransaction(t.id); }}
                               className="icon-btn delete-btn"
                               title="Delete Transaction"
                             >

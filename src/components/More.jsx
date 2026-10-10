@@ -16,7 +16,7 @@ const TAB_CONFIG = {
   'settings': { path: '/settings', icon: Settings, label: 'Settings', desc: 'Customize themes, currencies and categories' }
 };
 
-const ALL_TABS = ['dashboard', 'add', 'history', 'savings', 'stats', 'debts', 'side-accounts', 'convert', 'settings'];
+const ALL_TABS = ['dashboard', 'add', 'history', 'savings', 'stats', 'debts', 'side-accounts', 'convert'];
 
 const More = () => {
   const { tabOrder, features } = useFinance();
