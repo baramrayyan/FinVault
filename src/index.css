@@ -123,6 +123,26 @@ body.light-theme input[type="date"]::-webkit-calendar-picker-indicator {
   padding-bottom: calc(80px + env(safe-area-inset-bottom)); /* Space for bottom tab bar */
 }
 
+/* Focused Full-Screen Add Transaction view */
+.app-container.is-add-page {
+  padding: 10px 14px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  padding-bottom: calc(10px + env(safe-area-inset-bottom));
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.main-content.is-add-page {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 /* Glassmorphism utilities */
 .glass-panel {
   background: var(--bg-secondary);
@@ -132,8 +152,43 @@ body.light-theme input[type="date"]::-webkit-calendar-picker-indicator {
   padding: 20px;
 }
 
+/* Global button styles */
+.submit-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  background: var(--accent-blue, #0A84FF);
+  color: #FFFFFF;
+  border: none;
+  border-radius: var(--border-radius-sm, 10px);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.submit-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+.submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
 @media (max-width: 400px) {
-  .app-container {
+  .app-container:not(.is-add-page) {
     padding: 12px;
     padding-top: calc(12px + env(safe-area-inset-top));
     padding-bottom: calc(80px + env(safe-area-inset-bottom));
@@ -145,10 +200,16 @@ body.light-theme input[type="date"]::-webkit-calendar-picker-indicator {
 
 /* Desktop layout optimizations */
 @media (min-width: 800px) {
-  .app-container {
+  .app-container:not(.is-add-page) {
     padding-bottom: 20px;
     padding-left: 280px; /* Space for side tab bar */
     max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .app-container.is-add-page {
+    padding: 20px 16px;
+    max-width: 100%;
     margin: 0 auto;
   }
 }
@@ -165,4 +226,35 @@ body.light-theme input[type="date"]::-webkit-calendar-picker-indicator {
   height: 32px;
   border-radius: 8px;
   object-fit: cover;
+}
+
+/* Global Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  overflow-y: auto;
+  box-sizing: border-box;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modal-content,
+.edit-modal-wrapper {
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  margin: auto;
 }

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { collection, getDocs, addDoc, doc, setDoc, deleteDoc, onSnapshot, query, where } from 'firebase/firestore';
 import { useAuth } from './AuthContext';
 import { db } from '../firebase';
@@ -17,10 +17,18 @@ export const FinanceProvider = ({ children }) => {
   const [debts, setDebts] = useState([]);
   const [sideAccounts, setSideAccounts] = useState([]);
   const [sideAccountTxs, setSideAccountTxs] = useState([]);
+  const [sideAccountsOrder, setSideAccountsOrder] = useState(() => {
+    try {
+      const saved = localStorage.getItem('finvault_side_accounts_order');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      return [];
+    }
+  });
   const [loading, setLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7)); // 'YYYY-MM' or 'all'
   const [confirmConfig, setConfirmConfig] = useState(null);
-  
+
   // Settings & Customization
   const [savingsGoal, setSavingsGoal] = useState(0);
   const [theme, setTheme] = useState('dark');
@@ -89,7 +97,7 @@ export const FinanceProvider = ({ children }) => {
 
         unsubTransactions = onSnapshot(query(collection(db, "transactions"), where("uid", "==", currentUser.uid)), (snapshot) => {
           const transData = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          setTransactions(transData.sort((a,b) => new Date(b.date) - new Date(a.date)));
+          setTransactions(transData.sort((a, b) => new Date(b.date) - new Date(a.date)));
           checkDone('tx');
         });
 
@@ -101,7 +109,7 @@ export const FinanceProvider = ({ children }) => {
 
         unsubBusiness = onSnapshot(query(collection(db, "sideAccount_transactions"), where("uid", "==", currentUser.uid)), (snapshot) => {
           const bt = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          setSideAccountTxs(bt.sort((a,b) => new Date(b.date) - new Date(a.date)));
+          setSideAccountTxs(bt.sort((a, b) => new Date(b.date) - new Date(a.date)));
           checkDone('busTxs');
         });
 
@@ -114,8 +122,8 @@ export const FinanceProvider = ({ children }) => {
         unsubSettings = onSnapshot(collection(db, `users/${currentUser.uid}/settings`), (snapshot) => {
           let hasCategories = false;
           snapshot.forEach((d) => {
-            if(d.id === 'savings') setSavingsGoal(d.data().goal || 0);
-            if(d.id === 'preferences') {
+            if (d.id === 'savings') setSavingsGoal(d.data().goal || 0);
+            if (d.id === 'preferences') {
               setTheme(d.data().theme || 'dark');
               setCurrency(d.data().currency || 'JOD');
               if (d.data().tabOrder) setTabOrder(d.data().tabOrder);
@@ -123,8 +131,14 @@ export const FinanceProvider = ({ children }) => {
               if (d.data().dashboardLayout) setDashboardLayout(d.data().dashboardLayout);
               if (d.data().avatar !== undefined) setAvatar(d.data().avatar);
               if (d.data().excludedFromAvg) setExcludedFromAvg(d.data().excludedFromAvg);
+              if (d.data().sideAccountsOrder) {
+                setSideAccountsOrder(d.data().sideAccountsOrder);
+                try {
+                  localStorage.setItem('finvault_side_accounts_order', JSON.stringify(d.data().sideAccountsOrder));
+                } catch (e) {}
+              }
             }
-            if(d.id === 'categories') {
+            if (d.id === 'categories') {
               setCategories({
                 income: d.data().income || DEFAULT_CATEGORIES.income,
                 expense: d.data().expense || DEFAULT_CATEGORIES.expense
@@ -132,21 +146,21 @@ export const FinanceProvider = ({ children }) => {
               hasCategories = true;
             }
           });
-          
-          if(!hasCategories) setCategories(DEFAULT_CATEGORIES);
+
+          if (!hasCategories) setCategories(DEFAULT_CATEGORIES);
           checkDone('settings');
         });
 
         timeoutId = setTimeout(() => {
-           if (isMounted) {
-             console.warn("Loading taking too long. Retrying...");
-             if(unsubTransactions) unsubTransactions();
-             if(unsubDebts) unsubDebts();
-             if(unsubSettings) unsubSettings();
-             if(unsubBusiness) unsubBusiness();
-             if(unsubBusinesses) unsubBusinesses();
-             setRetryCount(prev => prev + 1);
-           }
+          if (isMounted) {
+            console.warn("Loading taking too long. Retrying...");
+            if (unsubTransactions) unsubTransactions();
+            if (unsubDebts) unsubDebts();
+            if (unsubSettings) unsubSettings();
+            if (unsubBusiness) unsubBusiness();
+            if (unsubBusinesses) unsubBusinesses();
+            setRetryCount(prev => prev + 1);
+          }
         }, 8000); // 8 seconds timeout
 
       } catch (e) {
@@ -154,17 +168,17 @@ export const FinanceProvider = ({ children }) => {
         setLoading(false);
       }
     };
-    
+
     setupListeners();
 
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
-      if(unsubTransactions) unsubTransactions();
-      if(unsubDebts) unsubDebts();
-      if(unsubSettings) unsubSettings();
-      if(unsubBusiness) unsubBusiness();
-      if(unsubBusinesses) unsubBusinesses();
+      if (unsubTransactions) unsubTransactions();
+      if (unsubDebts) unsubDebts();
+      if (unsubSettings) unsubSettings();
+      if (unsubBusiness) unsubBusiness();
+      if (unsubBusinesses) unsubBusinesses();
     };
   }, [currentUser, retryCount]);
 
@@ -172,7 +186,7 @@ export const FinanceProvider = ({ children }) => {
     try {
       const txWithTimestamp = { ...transaction, dateAdded: Date.now(), uid: currentUser.uid };
       if (db.app.options.apiKey === "YOUR_API_KEY") {
-        setTransactions(prev => [{...txWithTimestamp, id: Date.now().toString()}, ...prev]);
+        setTransactions(prev => [{ ...txWithTimestamp, id: Date.now().toString() }, ...prev]);
         return;
       }
       await addDoc(collection(db, "transactions"), txWithTimestamp);
@@ -207,7 +221,7 @@ export const FinanceProvider = ({ children }) => {
       }
       const snapshot = await getDocs(query(collection(db, "transactions"), where("uid", "==", currentUser.uid)));
       snapshot.forEach(async (d) => {
-        if(d.data().type !== 'savings') {
+        if (d.data().type !== 'savings') {
           await deleteDoc(doc(db, "transactions", d.id));
         }
       });
@@ -222,7 +236,7 @@ export const FinanceProvider = ({ children }) => {
       }
       const snapshot = await getDocs(query(collection(db, "transactions"), where("uid", "==", currentUser.uid)));
       snapshot.forEach(async (d) => {
-        if(d.data().type === 'savings') {
+        if (d.data().type === 'savings') {
           await deleteDoc(doc(db, "transactions", d.id));
         }
       });
@@ -236,18 +250,18 @@ export const FinanceProvider = ({ children }) => {
         setSavingsGoal(0);
         return;
       }
-      
+
       await addDoc(collection(db, "completed_goals"), {
         uid: currentUser.uid,
         goalAmount: savingsGoal,
         dateReached: new Date().toISOString().split('T')[0]
       });
-      
+
       await setDoc(doc(db, `users/${currentUser.uid}/settings`, "savings"), { goal: 0 }, { merge: true });
-      
+
       const snapshot = await getDocs(query(collection(db, "transactions"), where("uid", "==", currentUser.uid)));
       snapshot.forEach(async (d) => {
-        if(d.data().type === 'savings') {
+        if (d.data().type === 'savings') {
           await deleteDoc(doc(db, "transactions", d.id));
         }
       });
@@ -282,7 +296,7 @@ export const FinanceProvider = ({ children }) => {
       }
       const snapshot = await getDocs(query(collection(db, "debts"), where("uid", "==", currentUser.uid)));
       snapshot.forEach(async (d) => {
-        if(d.data().status === 'settled') {
+        if (d.data().status === 'settled') {
           await deleteDoc(doc(db, "debts", d.id));
         }
       });
@@ -301,18 +315,23 @@ export const FinanceProvider = ({ children }) => {
 
   const updateSettings = async (type, data) => {
     try {
+      if (typeof type === 'object' && !data) {
+        data = type;
+        type = 'preferences';
+      }
       if (db.app.options.apiKey === "YOUR_API_KEY") {
-        if(type === 'savings') setSavingsGoal(data.goal);
-        if(type === 'preferences') { 
-          if(data.theme) setTheme(data.theme); 
-          if(data.currency) setCurrency(data.currency); 
-          if(data.tabOrder) setTabOrder(data.tabOrder); 
-          if(data.features) setFeatures(data.features);
-          if(data.dashboardLayout) setDashboardLayout(data.dashboardLayout);
-          if(data.avatar !== undefined) setAvatar(data.avatar);
-          if(data.excludedFromAvg) setExcludedFromAvg(data.excludedFromAvg);
+        if (type === 'savings') setSavingsGoal(data.goal);
+        if (type === 'preferences') {
+          if (data.theme) setTheme(data.theme);
+          if (data.currency) setCurrency(data.currency);
+          if (data.tabOrder) setTabOrder(data.tabOrder);
+          if (data.features) setFeatures(data.features);
+          if (data.dashboardLayout) setDashboardLayout(data.dashboardLayout);
+          if (data.avatar !== undefined) setAvatar(data.avatar);
+          if (data.excludedFromAvg) setExcludedFromAvg(data.excludedFromAvg);
+          if (data.sideAccountsOrder) setSideAccountsOrder(data.sideAccountsOrder);
         }
-        if(type === 'categories') setCategories(data);
+        if (type === 'categories') setCategories(data);
         return;
       }
       await setDoc(doc(db, `users/${currentUser.uid}/settings`, type), data, { merge: true });
@@ -322,7 +341,7 @@ export const FinanceProvider = ({ children }) => {
   const addSideAccountTx = async (tx) => {
     try {
       if (db.app.options.apiKey === "YOUR_API_KEY") {
-        setSideAccountTxs(prev => [{...tx, id: Date.now().toString()}, ...prev]);
+        setSideAccountTxs(prev => [{ ...tx, id: Date.now().toString() }, ...prev]);
         return;
       }
       await addDoc(collection(db, "sideAccount_transactions"), { ...tx, uid: currentUser.uid });
@@ -357,25 +376,57 @@ export const FinanceProvider = ({ children }) => {
       }
       const snapshot = await getDocs(query(collection(db, "sideAccount_transactions"), where("uid", "==", currentUser.uid)));
       snapshot.forEach(async (d) => {
-        if(d.data().accountId === accountId) {
+        if (d.data().accountId === accountId) {
           await deleteDoc(doc(db, "sideAccount_transactions", d.id));
         }
       });
     } catch (e) { console.error(e); }
   };
 
+  const reorderSideAccounts = async (newOrderedAccountsOrIds) => {
+    try {
+      const ids = Array.isArray(newOrderedAccountsOrIds)
+        ? newOrderedAccountsOrIds.map(item => (typeof item === 'object' && item?.id ? item.id : item))
+        : [];
+      setSideAccountsOrder(ids);
+      try {
+        localStorage.setItem('finvault_side_accounts_order', JSON.stringify(ids));
+      } catch (e) {}
+
+      if (db.app.options.apiKey === "YOUR_API_KEY") {
+        return;
+      }
+      await setDoc(doc(db, `users/${currentUser.uid}/settings`, 'preferences'), { sideAccountsOrder: ids }, { merge: true });
+    } catch (e) { console.error("Error reordering side accounts:", e); }
+  };
+
+  const orderedSideAccounts = useMemo(() => {
+    if (!sideAccounts || sideAccounts.length === 0) return [];
+    if (!sideAccountsOrder || sideAccountsOrder.length === 0) return sideAccounts;
+    const orderMap = new Map(sideAccountsOrder.map((id, index) => [id, index]));
+    return [...sideAccounts].sort((a, b) => {
+      const idxA = orderMap.has(a.id) ? orderMap.get(a.id) : 999999;
+      const idxB = orderMap.has(b.id) ? orderMap.get(b.id) : 999999;
+      return idxA - idxB;
+    });
+  }, [sideAccounts, sideAccountsOrder]);
+
   const addSideAccount = async (account) => {
     try {
       if (db.app.options.apiKey === "YOUR_API_KEY") {
-        setSideAccounts(prev => [{...account, id: Date.now().toString()}, ...prev]);
+        const newId = Date.now().toString();
+        setSideAccounts(prev => [{ ...account, id: newId }, ...prev]);
+        setSideAccountsOrder(prev => [newId, ...prev]);
         return;
       }
-      await addDoc(collection(db, "sideAccounts"), { ...account, uid: currentUser.uid });
+      const docRef = await addDoc(collection(db, "sideAccounts"), { ...account, uid: currentUser.uid });
+      setSideAccountsOrder(prev => [docRef.id, ...prev]);
     } catch (e) { console.error(e); }
   };
 
   const removeSideAccount = async (id) => {
     try {
+      setSideAccountsOrder(prev => prev.filter(aId => aId !== id));
       if (db.app.options.apiKey === "YOUR_API_KEY") {
         setSideAccounts(prev => prev.filter(b => b.id !== id));
         setSideAccountTxs(prev => prev.filter(t => t.accountId !== id));
@@ -396,17 +447,17 @@ export const FinanceProvider = ({ children }) => {
   };
 
   // Calculations
-  const monthlyTransactions = transactions.filter(t => 
+  const monthlyTransactions = transactions.filter(t =>
     selectedMonth === 'all' || t.date.startsWith(selectedMonth)
   );
 
   const income = monthlyTransactions.filter(t => t.type === 'income').reduce((acc, curr) => acc + Number(curr.amount), 0);
   const expense = monthlyTransactions.filter(t => t.type === 'expense').reduce((acc, curr) => acc + Number(curr.amount), 0);
   const savingsThisMonth = monthlyTransactions.filter(t => t.type === 'savings').reduce((acc, curr) => acc + Number(curr.amount), 0);
-  
+
   // Total overall savings progress
   const savingsAdded = transactions.filter(t => t.type === 'savings').reduce((acc, curr) => acc + Number(curr.amount), 0);
-  
+
   // Monthly balance
   const remaining = income - expense - savingsThisMonth;
 
@@ -439,13 +490,13 @@ export const FinanceProvider = ({ children }) => {
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
     const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
     const minutes = Math.floor((diff / 1000 / 60) % 60);
-    
+
     let str = '';
     if (days > 0) str += `${days}d `;
     if (hours > 0) str += `${hours}h `;
     if (minutes > 0) str += `${minutes}m `;
     if (str === '') str = 'Just now';
-    
+
     return date > now ? `in ${str.trim()}` : `${str.trim()} ago`;
   };
 
@@ -467,19 +518,19 @@ export const FinanceProvider = ({ children }) => {
 
   return (
     <FinanceContext.Provider value={{
-      transactions, monthlyTransactions, debts, sideAccounts, sideAccountTxs, loading, savingsGoal, income, expense, remaining, savingsAdded,
+      transactions, monthlyTransactions, debts, sideAccounts: orderedSideAccounts, sideAccountsOrder, reorderSideAccounts, sideAccountTxs, loading, savingsGoal, income, expense, remaining, savingsAdded,
       theme, currency, categories, selectedMonth, setSelectedMonth, tabOrder, features, dashboardLayout, avatar, excludedFromAvg,
       addTransaction, removeTransaction, updateTransaction, clearTransactions, clearSavingsHistory, completeSavingsGoal, addDebt, removeDebt, settleDebt, clearDebtHistory, addSideAccountTx, removeSideAccountTx, updateSideAccountTx, clearSideAccountTxs, addSideAccount, removeSideAccount, updateSideAccount, updateSettings, formatCurrency, getCurrencySymbol, formatDateToRelative, confirmAction
     }}>
       {children}
       {confirmConfig && (
-        <div className="modal-overlay" style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'}}>
-          <div className="glass-panel" style={{width: '100%', maxWidth: '350px', background: 'var(--bg-secondary)', padding: '24px', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', animation: 'fadeIn 0.2s ease-out'}}>
-            <h3 style={{margin: '0 0 12px 0'}}>Confirm Action</h3>
-            <p style={{margin: '0 0 24px 0', color: 'var(--text-secondary)', lineHeight: '1.5', fontSize: '15px'}}>{confirmConfig.message}</p>
-            <div style={{display: 'flex', gap: '12px', justifyContent: 'flex-end'}}>
-              <button onClick={confirmConfig.onCancel} style={{padding: '10px 16px', borderRadius: '8px', border: '1px solid var(--text-secondary)', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold'}}>Cancel</button>
-              <button onClick={confirmConfig.onConfirm} style={{padding: '10px 16px', borderRadius: '8px', border: 'none', background: 'var(--accent-red)', color: '#fff', cursor: 'pointer', fontWeight: 'bold'}}>Confirm</button>
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px' }}>
+          <div className="glass-panel" style={{ width: '100%', maxWidth: '350px', background: 'var(--bg-secondary)', padding: '24px', borderRadius: '16px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)', animation: 'fadeIn 0.2s ease-out' }}>
+            <h3 style={{ margin: '0 0 12px 0' }}>Confirm Action</h3>
+            <p style={{ margin: '0 0 24px 0', color: 'var(--text-secondary)', lineHeight: '1.5', fontSize: '15px' }}>{confirmConfig.message}</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button onClick={confirmConfig.onCancel} style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid var(--text-secondary)', background: 'transparent', color: 'var(--text-primary)', cursor: 'pointer', fontWeight: 'bold' }}>Cancel</button>
+              <button onClick={confirmConfig.onConfirm} style={{ padding: '10px 16px', borderRadius: '8px', border: 'none', background: 'var(--accent-red)', color: '#fff', cursor: 'pointer', fontWeight: 'bold' }}>Confirm</button>
             </div>
           </div>
         </div>

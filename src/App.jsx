@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { FinanceProvider, useFinance } from './context/FinanceContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Dashboard from './components/Dashboard';
@@ -45,6 +45,8 @@ const ProtectedRoute = ({ children }) => {
 
 function AppContent() {
   const { loading } = useFinance();
+  const location = useLocation();
+  const isAddPage = location.pathname === '/add' || location.pathname.startsWith('/add/');
 
   if (loading) {
     return (
@@ -56,10 +58,10 @@ function AppContent() {
   }
 
   return (
-    <div className="app-container">
-      <Header />
+    <div className={`app-container ${isAddPage ? 'is-add-page' : ''}`}>
+      {!isAddPage && <Header />}
       
-      <main className="main-content">
+      <main className={`main-content ${isAddPage ? 'is-add-page' : ''}`}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/add" element={<TransactionForm />} />
@@ -75,8 +77,8 @@ function AppContent() {
         </Routes>
       </main>
       
-      <TabBar />
-      <PWAInstallPrompt />
+      {!isAddPage && <TabBar />}
+      {!isAddPage && <PWAInstallPrompt />}
     </div>
   );
 }

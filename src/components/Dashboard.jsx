@@ -1,65 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { TrendingUp, TrendingDown, PiggyBank, Wallet, ArrowDownRight, AlertCircle, CheckCircle2, Settings as SettingsIcon, ArrowUp, ArrowDown } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { TrendingUp, TrendingDown, PiggyBank, Wallet, AlertCircle, CheckCircle2 } from 'lucide-react';
 import './Dashboard.css';
 import './DashboardDebts.css';
 
+const DEFAULT_LAYOUT = [
+  { id: 'balance', visible: true, label: 'Remaining Balance' },
+  { id: 'stats', visible: true, label: 'Income & Expense Stats' },
+  { id: 'summary', visible: true, label: 'Monthly Summary Bar' },
+  { id: 'insight-daily', visible: true, label: 'Insight: Avg Daily Spend' },
+  { id: 'insight-tx', visible: true, label: 'Insight: Transactions Count' },
+  { id: 'breakdown', visible: true, label: 'Expense Breakdown' },
+  { id: 'debts', visible: true, label: 'Urgent Debts' }
+];
+
 const Dashboard = () => {
-  const { income, expense, savingsGoal, remaining, debts, loading, formatCurrency, savingsAdded, settleDebt, formatDateToRelative, monthlyTransactions, features, selectedMonth, dashboardLayout, updateSettings, excludedFromAvg } = useFinance();
-  const [isEditing, setIsEditing] = useState(false);
-  const [localLayout, setLocalLayout] = useState([]);
-
-  // Sync with context
-  React.useEffect(() => {
-    if (dashboardLayout) {
-      // Ensure all defaults exist in case of old data
-      const defaultLayout = [
-        { id: 'balance', label: 'Remaining Balance' },
-        { id: 'stats', label: 'Income & Expense Stats' },
-        { id: 'summary', label: 'Monthly Summary Bar' },
-        { id: 'insight-daily', label: 'Insight: Avg Daily Spend' },
-        { id: 'insight-tx', label: 'Insight: Transactions Count' },
-        { id: 'breakdown', label: 'Expense Breakdown' },
-        { id: 'debts', label: 'Urgent Debts' }
-      ];
-      
-      let merged = [...dashboardLayout];
-      // Add missing default items to the end as hidden
-      defaultLayout.forEach(def => {
-         if (!merged.find(w => w.id === def.id)) {
-            merged.push({ ...def, visible: false });
-         }
-      });
-      // Ensure labels are up to date
-      merged = merged.map(w => {
-         const def = defaultLayout.find(d => d.id === w.id);
-         return { ...w, label: def ? def.label : w.id };
-      });
-      
-      setLocalLayout(merged);
-    }
-  }, [dashboardLayout]);
-
-  const moveWidget = (index, dir) => {
-    const newLayout = [...localLayout];
-    const target = index + dir;
-    if (target < 0 || target >= newLayout.length) return;
-    const temp = newLayout[target];
-    newLayout[target] = newLayout[index];
-    newLayout[index] = temp;
-    setLocalLayout(newLayout);
-  };
-
-  const toggleWidget = (index) => {
-    const newLayout = [...localLayout];
-    newLayout[index].visible = !newLayout[index].visible;
-    setLocalLayout(newLayout);
-  };
-
-  const saveLayout = () => {
-    updateSettings({ dashboardLayout: localLayout });
-    setIsEditing(false);
-  };
+  const { income, expense, savingsGoal, remaining, debts, loading, formatCurrency, savingsAdded, settleDebt, formatDateToRelative, monthlyTransactions, features, selectedMonth, dashboardLayout, excludedFromAvg, avatar } = useFinance();
+  const { currentUser } = useAuth();
 
   const totalOwed = debts.filter(d => d.type === 'owe' && d.status !== 'settled').reduce((acc, curr) => acc + Number(curr.amount), 0);
 
@@ -290,8 +248,10 @@ const Dashboard = () => {
        }
     };
 
-    localLayout.forEach(widget => {
-       if (!widget.visible) return;
+    const activeLayout = (dashboardLayout && dashboardLayout.length > 0) ? dashboardLayout : DEFAULT_LAYOUT;
+
+    activeLayout.forEach(widget => {
+       if (widget.visible === false) return;
        
        if (widget.id.startsWith('insight-')) {
           if (INSIGHTS[widget.id]) currentInsights.push(INSIGHTS[widget.id]);
@@ -305,71 +265,27 @@ const Dashboard = () => {
     return rendered;
   };
 
-  const handleToggleEdit = () => {
-    if (isEditing) {
-      // Re-sync local layout with saved layout if canceling
-      const defaultLayout = [
-        { id: 'balance', label: 'Remaining Balance' },
-        { id: 'stats', label: 'Income & Expense Stats' },
-        { id: 'summary', label: 'Monthly Summary Bar' },
-        { id: 'insight-daily', label: 'Insight: Avg Daily Spend' },
-        { id: 'insight-tx', label: 'Insight: Transactions Count' },
-        { id: 'breakdown', label: 'Expense Breakdown' },
-        { id: 'debts', label: 'Urgent Debts' }
-      ];
-      let merged = [...dashboardLayout];
-      defaultLayout.forEach(def => {
-         if (!merged.find(w => w.id === def.id)) {
-            merged.push({ ...def, visible: false });
-         }
-      });
-      merged = merged.filter(w => defaultLayout.find(d => d.id === w.id)); // Strip out net/top
-      merged = merged.map(w => {
-         const def = defaultLayout.find(d => d.id === w.id);
-         return { ...w, label: def ? def.label : w.id };
-      });
-      setLocalLayout(merged);
-    }
-    setIsEditing(!isEditing);
-  };
-
   return (
     <div className="dashboard">
-      <header className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{margin: 0}}>Overview</h2>
-        <button onClick={handleToggleEdit} style={{ background: 'var(--bg-tertiary)', border: 'none', color: 'var(--text-primary)', padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 'bold' }}>
-           <SettingsIcon size={18} /> <span style={{fontSize: '13px'}}>{isEditing ? 'Cancel' : 'Customize'}</span>
-        </button>
-      </header>
+      <div className="welcome-card glass-panel">
+        <div className="welcome-avatar-wrapper">
+          {avatar ? (
+            <img src={avatar} alt="Profile" className="welcome-avatar-img" />
+          ) : (
+            <div className="welcome-avatar-fallback">
+              {currentUser?.displayName?.charAt(0) || 'U'}
+            </div>
+          )}
+        </div>
+        <div className="welcome-text-content">
+          <span className="welcome-greeting">Welcome back,</span>
+          <h2 className="welcome-user-name">{currentUser?.displayName || 'User'}</h2>
+        </div>
+      </div>
 
-      {isEditing ? (
-        <div className="glass-panel" style={{ padding: '24px', animation: 'fadeIn 0.2s ease-out' }}>
-           <h3 style={{ margin: '0 0 8px 0' }}>Customize Layout</h3>
-           <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: '20px' }}>Show, hide, or drag widgets to reorder your dashboard.</p>
-           
-           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '24px' }}>
-             {localLayout.map((widget, index) => (
-                <div key={widget.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'var(--bg-tertiary)', borderRadius: '8px', opacity: widget.visible ? 1 : 0.6, border: widget.visible ? '1px solid var(--accent-blue)' : '1px solid transparent', transition: 'all 0.2s ease' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div onClick={() => toggleWidget(index)} style={{ width: '22px', height: '22px', borderRadius: '6px', border: '2px solid var(--accent-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: widget.visible ? 'var(--accent-blue)' : 'transparent', transition: 'all 0.2s ease' }}>
-                      {widget.visible && <CheckCircle2 size={14} color="#fff" />}
-                    </div>
-                    <span style={{ fontWeight: widget.visible ? 'bold' : 'normal' }}>{widget.label}</span>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => moveWidget(index, -1)} disabled={index === 0} style={{ background: 'var(--bg-secondary)', border: 'none', color: 'var(--text-primary)', padding: '6px', borderRadius: '4px', cursor: index === 0 ? 'not-allowed' : 'pointer', opacity: index === 0 ? 0.3 : 1 }}><ArrowUp size={16} /></button>
-                    <button onClick={() => moveWidget(index, 1)} disabled={index === localLayout.length - 1} style={{ background: 'var(--bg-secondary)', border: 'none', color: 'var(--text-primary)', padding: '6px', borderRadius: '4px', cursor: index === localLayout.length - 1 ? 'not-allowed' : 'pointer', opacity: index === localLayout.length - 1 ? 0.3 : 1 }}><ArrowDown size={16} /></button>
-                  </div>
-                </div>
-             ))}
-           </div>
-           <button onClick={saveLayout} style={{ background: 'var(--accent-blue)', color: 'white', border: 'none', padding: '12px', borderRadius: '8px', width: '100%', fontWeight: 'bold', cursor: 'pointer' }}>Save Layout</button>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.2s ease-out' }}>
-          {renderDashboardContent()}
-        </div>
-      )}
+      <div className="dashboard-content" style={{ display: 'flex', flexDirection: 'column', animation: 'fadeIn 0.2s ease-out' }}>
+        {renderDashboardContent()}
+      </div>
     </div>
   );
 };

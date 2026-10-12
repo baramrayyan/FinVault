@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { PiggyBank, Trash2, Download, FileText, CheckSquare, Square } from 'lucide-react';
+import { PiggyBank, Trash2, Share2, FileText, CheckSquare, Square } from 'lucide-react';
 import ReceiptModal from './ReceiptModal';
 import './Savings.css';
+import './TransactionList.css';
 
 const Savings = () => {
   const { transactions, savingsGoal, updateSettings, addTransaction, removeTransaction, clearSavingsHistory, completeSavingsGoal, formatCurrency, savingsAdded, getCurrencySymbol, formatDateToRelative, confirmAction } = useFinance();
@@ -168,19 +169,47 @@ const Savings = () => {
       </div>
 
       <div className="history-header" style={{marginTop: '32px'}}>
-        <h2 className="section-title">Savings History</h2>
-        <div style={{display: 'flex', gap: '8px'}}>
+        <div className="history-title-group">
+          <h2 className="section-title">Savings History</h2>
+          <span className="history-count-badge">
+            {savingsTxs.length} {savingsTxs.length === 1 ? 'item' : 'items'}
+          </span>
+        </div>
+        <div className="history-actions-bar">
+          {savingsTxs.length > 0 && (
+            <button 
+              type="button"
+              className={`history-action-btn ${savingsTxs.length > 0 && selectedTxns.length === savingsTxs.length ? 'active' : ''}`}
+              onClick={() => {
+                if (selectedTxns.length === savingsTxs.length) {
+                  setSelectedTxns([]);
+                } else {
+                  setSelectedTxns(savingsTxs.map(t => t.id));
+                }
+              }}
+            >
+              {selectedTxns.length === savingsTxs.length ? <Square size={14} /> : <CheckSquare size={14} />}
+              <span>{selectedTxns.length === savingsTxs.length ? 'Deselect All' : 'Select All'}</span>
+            </button>
+          )}
           {selectedTxns.length > 0 && (
-            <button className="generate-multi-btn" onClick={handleGenerateReceipt} style={{background: 'var(--bg-secondary)', border: '1px solid var(--accent-blue)', color: 'var(--accent-blue)', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'}}>
-              <Download size={16} /> Print Selected ({selectedTxns.length})
+            <button 
+              type="button"
+              className="history-action-btn share-btn" 
+              onClick={handleGenerateReceipt}
+            >
+              <Share2 size={14} />
+              <span>Share PDF ({selectedTxns.length})</span>
             </button>
           )}
           {savingsTxs.length > 0 && (
             <button 
+              type="button"
+              className="history-action-btn delete-btn"
               onClick={async () => { if(await confirmAction('Are you sure you want to clear all savings history?')) clearSavingsHistory() }}
-              style={{background: 'rgba(255, 69, 58, 0.1)', color: 'var(--accent-red)', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center'}}
             >
-              Clear All
+              <Trash2 size={14} />
+              <span>Clear All</span>
             </button>
           )}
         </div>

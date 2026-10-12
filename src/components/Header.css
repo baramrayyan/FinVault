@@ -1,3 +1,155 @@
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  margin-top: 16px;
+  position: relative;
+  z-index: 100;
+  gap: 12px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  flex-shrink: 0;
+  min-width: 0;
+}
+
+.header-logo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.header-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Foldable Menu Trigger & Container */
+.header-foldable-container {
+  position: relative;
+}
+
+.header-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(128, 128, 128, 0.15);
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+
+.header-nav-btn:hover {
+  background: var(--bg-tertiary);
+  border-color: rgba(10, 132, 255, 0.35);
+  color: var(--accent-blue);
+  transform: translateY(-1px);
+}
+
+.header-nav-btn:active {
+  transform: scale(0.97);
+}
+
+.foldable-trigger {
+  font-family: inherit;
+}
+
+/* Foldable Menu Popup */
+.header-foldable-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 210px;
+  border-radius: 14px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 1000;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(20px);
+  animation: fadeIn 0.18s ease-out;
+}
+
+.header-foldable-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text-primary);
+  transition: all 0.18s ease;
+}
+
+.header-foldable-item:hover {
+  background: rgba(128, 128, 128, 0.12);
+  transform: translateX(2px);
+}
+
+.foldable-item-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: rgba(10, 132, 255, 0.12);
+  color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.foldable-item-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.foldable-item-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.foldable-item-sub {
+  font-size: 11px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Custom Month Dropdown */
 .custom-dropdown-container {
   position: relative;
 }
@@ -6,12 +158,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 16px;
+  padding: 0 16px;
+  height: 44px;
   border-radius: 12px;
   cursor: pointer;
   user-select: none;
   transition: background 0.2s, border-color 0.2s;
   background: var(--bg-secondary);
+  box-sizing: border-box;
 }
 
 .custom-dropdown-trigger:hover {
@@ -37,7 +191,6 @@
   backdrop-filter: blur(20px);
 }
 
-/* Custom Scrollbar for Dropdown */
 .custom-dropdown-menu::-webkit-scrollbar {
   width: 6px;
 }
@@ -69,4 +222,76 @@
   background: rgba(10, 132, 255, 0.1);
   color: var(--accent-blue);
   font-weight: 600;
+}
+
+/* Responsive adjustments - never hide FinVault name */
+@media (max-width: 600px) {
+  .app-header {
+    margin-top: 10px;
+    margin-bottom: 16px;
+    gap: 8px;
+  }
+
+  .header-brand {
+    gap: 8px;
+  }
+
+  .header-logo {
+    width: 28px;
+    height: 28px;
+  }
+
+  .header-title {
+    font-size: 18px;
+    letter-spacing: -0.3px;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .custom-dropdown-trigger {
+    padding: 0 10px !important;
+    height: 40px !important;
+    font-size: 13px !important;
+    gap: 6px !important;
+  }
+
+  .header-nav-btn {
+    height: 40px !important;
+    padding: 0 10px !important;
+    gap: 4px !important;
+  }
+
+  .nav-btn-label {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .header-brand {
+    gap: 6px;
+  }
+
+  .header-logo {
+    width: 24px;
+    height: 24px;
+  }
+
+  .header-title {
+    font-size: 16px;
+  }
+
+  .custom-dropdown-trigger {
+    padding: 0 8px !important;
+    gap: 4px !important;
+  }
+
+  .custom-dropdown-trigger span {
+    font-size: 12px !important;
+  }
+
+  .header-nav-btn {
+    padding: 0 8px !important;
+  }
 }

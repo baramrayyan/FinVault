@@ -1,325 +1,299 @@
-.modal-overlay {
+/* Status Overlay during generation */
+.pdf-status-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(5px);
-  z-index: 2000;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   animation: fadeIn 0.2s ease-out;
+  box-sizing: border-box;
 }
 
-.receipt-modal {
-  background: var(--bg-primary);
-  width: 95%;
-  max-width: 700px;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
+.pdf-status-card {
+  width: 100%;
+  max-width: 380px;
+  margin: auto;
+  background: var(--bg-secondary);
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  border-radius: var(--border-radius-lg);
+  padding: 32px 24px;
+  text-align: center;
   position: relative;
-  padding: 0;
-  overflow: hidden;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
 }
 
-.close-btn {
+.pdf-close-btn {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  background: rgba(0,0,0,0.5);
-  color: white;
+  top: 12px;
+  right: 12px;
+  background: transparent;
+  color: var(--text-secondary);
   border: none;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  width: 32px;
-  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 10;
+  transition: all 0.2s ease;
 }
 
-.receipt-customization {
-  padding: 20px 20px 0;
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-  align-items: center;
-}
-
-.customization-group {
-  display: flex;
-  flex-direction: column;
-}
-
-.customization-group.title-input {
-  flex: 1;
-  min-width: 200px;
-}
-
-.customization-group.title-input label {
-  font-size: 12px;
-  color: var(--text-secondary);
-  margin-bottom: 4px;
-}
-
-.customization-group.title-input input {
-  width: 100%;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid rgba(128,128,128,0.2);
+.pdf-close-btn:hover {
   background: var(--bg-tertiary);
   color: var(--text-primary);
-  outline: none;
 }
 
-.customization-group.toggle-input {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
-  background: var(--bg-secondary);
-  border-radius: var(--border-radius-sm);
-  border: 1px solid rgba(128,128,128,0.1);
-  margin-top: 18px;
-}
-
-.ios-switch {
-  position: relative;
-  display: inline-block;
-  width: 44px;
-  height: 24px;
-}
-
-.ios-switch input {
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-.ios-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-color: var(--bg-tertiary);
-  transition: .3s;
-  border-radius: 24px;
-  border: 1px solid rgba(128,128,128,0.2);
-}
-
-.ios-slider:before {
-  position: absolute;
-  content: "";
-  height: 18px;
-  width: 18px;
-  left: 2px;
-  bottom: 2px;
-  background-color: white;
-  transition: .3s;
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-input:checked + .ios-slider {
-  background-color: var(--accent-color);
-  border-color: var(--accent-color);
-}
-
-input:checked + .ios-slider:before {
-  transform: translateX(20px);
-}
-
-.customization-group.toggle-input > label:not(.ios-switch) {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary);
-  cursor: pointer;
-  flex: 1;
-}
-
-.ios-switch {
-  flex: 0 0 44px;
-}
-
-@media (max-width: 500px) {
-  .receipt-customization {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 12px;
-  }
-  
-  .customization-group.title-input {
-    min-width: 100%;
-  }
-  
-  .customization-group.toggle-input {
-    padding-top: 0;
-  }
-}
-
-.receipt-preview-container {
-  overflow-y: auto;
-  padding: 40px 20px;
-  background: #E8E8E8; /* Receipt paper background */
+.pdf-status-content {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
-.realistic-receipt {
-  background: #FFF;
-  color: #222;
-  font-family: 'Courier New', Courier, monospace;
-  width: 100%;
-  margin: 0 auto;
-  padding: 30px 20px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  position: relative;
-}
-
-/* Zigzag border for receipt top/bottom */
-.realistic-receipt::before, .realistic-receipt::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 8px;
-  background-size: 16px 16px;
-}
-.realistic-receipt::before {
-  top: -8px;
-  background-image: linear-gradient(135deg, transparent 50%, #fff 50%), linear-gradient(-135deg, transparent 50%, #fff 50%);
-}
-.realistic-receipt::after {
-  bottom: -8px;
-  background-image: linear-gradient(45deg, #fff 50%, transparent 50%), linear-gradient(-45deg, #fff 50%, transparent 50%);
-}
-
-.receipt-header {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.receipt-logo {
-  width: 60px;
-  height: 60px;
-  margin-bottom: 10px;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
-}
-
-.receipt-header h2 {
+.pdf-status-content h3 {
+  margin: 0;
   font-size: 18px;
-  margin: 0 0 5px 0;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.pdf-status-content p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.pdf-spin-icon {
+  animation: spin 1s linear infinite;
+  color: var(--accent-blue);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.pdf-retry-btn {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid rgba(128, 128, 128, 0.3);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+/* Offscreen container for clean printable PDF */
+.pdf-offscreen-wrapper {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 740px;
+  pointer-events: none;
+  opacity: 1;
+}
+
+.clean-pdf-document {
+  background: #ffffff;
+  color: #111827;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  padding: 24px 20px;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.clean-pdf-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 18px;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 18px;
+  width: 100%;
+  box-sizing: border-box;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.clean-pdf-title {
+  font-size: 26px;
   font-weight: 800;
-  letter-spacing: 1px;
+  color: #111827;
+  margin: 0;
+  letter-spacing: -0.5px;
 }
 
-.receipt-header p {
+.clean-pdf-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.clean-pdf-date {
+  font-size: 13px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.clean-pdf-count {
   font-size: 12px;
-  margin: 2px 0;
-  color: #666;
+  color: #9ca3af;
 }
 
-.receipt-divider {
-  border-top: 2px solid #222;
-  margin: 15px 0;
+/* Summary KPI Cards */
+.clean-pdf-summary {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  width: 100%;
+  box-sizing: border-box;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
-.receipt-divider.dashed {
-  border-top: 2px dashed #888;
+.clean-pdf-stat {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  page-break-inside: avoid;
+  break-inside: avoid;
 }
 
-.receipt-table {
+.clean-pdf-stat.income {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+.clean-pdf-stat.expense {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.clean-pdf-stat.net {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.clean-stat-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #4b5563;
+}
+
+.clean-stat-val {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.clean-pdf-stat.income .clean-stat-val {
+  color: #16a34a;
+}
+
+.clean-pdf-stat.expense .clean-stat-val {
+  color: #dc2626;
+}
+
+/* Document Table */
+.clean-pdf-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 13px;
+  margin-bottom: 24px;
+  box-sizing: border-box;
+  page-break-inside: auto;
+  break-inside: auto;
 }
 
-.receipt-table th {
+.clean-pdf-table thead {
+  display: table-header-group;
+}
+
+.clean-pdf-table tr {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.clean-pdf-table th {
   text-align: left;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 5px;
-  font-weight: bold;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #6b7280;
+  padding: 8px 10px;
+  border-bottom: 2px solid #e5e7eb;
 }
 
-.receipt-table td {
-  padding: 10px 0;
-  vertical-align: top;
+.clean-pdf-table td {
+  padding: 10px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 12px;
+  color: #374151;
+  vertical-align: middle;
 }
 
-.receipt-table small {
-  color: #777;
+.clean-td-date {
+  color: #6b7280;
   font-size: 11px;
 }
 
-.receipt-summary {
-  margin-top: 20px;
-}
-
-.summary-row {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-.net-total {
-  font-size: 18px;
-  font-weight: 900;
-}
-
-.receipt-footer {
-  text-align: center;
-  margin-top: 30px;
+.clean-td-desc strong {
+  color: #111827;
   font-size: 12px;
-  color: #555;
 }
 
-.barcode {
-  font-size: 24px;
-  letter-spacing: 2px;
-  margin-top: 10px;
-  opacity: 0.8;
+.clean-cat-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #f3f4f6;
+  font-size: 10px;
+  font-weight: 500;
+  color: #4b5563;
 }
 
-.modal-actions {
-  padding: 16px;
-  background: var(--bg-tertiary);
-  display: flex;
-  justify-content: center;
+.clean-td-amount {
+  font-weight: 700;
+  text-align: right;
+  font-size: 13px;
 }
 
-.download-btn {
-  background: var(--accent-blue);
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: var(--border-radius-md);
-  font-size: 16px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
+.clean-td-amount.income {
+  color: #16a34a;
 }
 
-.print-mode {
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: -9999;
-  width: 800px; /* Ensure wide render for PDF */
-  max-width: none;
-  height: auto;
-  overflow: visible;
+.clean-td-amount.expense {
+  color: #dc2626;
 }
 
-/* Ensure table rows don't break awkwardly across pages in PDF */
-.receipt-table tr {
+/* Footer */
+.clean-pdf-footer {
+  text-align: center;
+  padding-top: 16px;
+  border-top: 1px solid #f3f4f6;
+  font-size: 11px;
+  color: #9ca3af;
+  width: 100%;
+  box-sizing: border-box;
   page-break-inside: avoid;
-}
-.summary-row {
-  page-break-inside: avoid;
+  break-inside: avoid;
 }

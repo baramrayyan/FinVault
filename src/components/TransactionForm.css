@@ -1,179 +1,923 @@
-.transaction-form-container {
-  animation: slideUp 0.3s ease-out;
-  max-height: 90vh;
-  overflow-y: auto;
+/* iOS / Apple Cash & Revolut-Style Transaction Keypad */
+.ios-keypad-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 420px;
+  min-height: min(650px, 92vh);
+  max-height: calc(100dvh - 16px);
+  margin: 0 auto;
+  padding: 12px 18px 16px;
+  background: #000000;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 28px;
+  box-sizing: border-box;
+  user-select: none;
+  animation: fadeIn 0.25s ease-out;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
 }
 
-@keyframes slideUp {
-  from { opacity: 0; transform: translateY(20px); }
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* 1. Header Bar */
+.ios-keypad-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 2px;
+  margin-bottom: 12px;
+}
+
+.ios-circle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1C1C1E;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: transform 0.08s ease-out, background-color 0.12s ease-out, color 0.12s ease-out, border-color 0.12s ease-out;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  outline: none;
+  padding: 0;
+}
+
+.ios-circle-btn:active {
+  transform: scale(0.94) translateZ(0);
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.close-x-btn:hover {
+  background: rgba(255, 69, 58, 0.15);
+  color: #FF453A;
+  border-color: rgba(255, 69, 58, 0.35);
+}
+
+.ios-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+}
+
+.ios-header-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: #FFFFFF;
+  letter-spacing: -0.2px;
+}
+
+.ios-header-balance {
+  font-size: 13px;
+  color: rgba(235, 235, 245, 0.6);
+  font-weight: 400;
+}
+
+/* 2. Amount Display Section */
+.ios-amount-display-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 64px;
+  min-height: 64px;
+  max-height: 64px;
+  margin-bottom: 12px;
+  padding: 0 12px;
+  text-align: center;
+  overflow: hidden;
+}
+
+.ios-single-amount-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px;
+}
+
+.ios-currency-prefix {
+  font-size: clamp(24px, 6vw, 36px);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  margin-right: 2px;
+}
+
+.ios-amount-number {
+  font-size: clamp(40px, 10vw, 56px);
+  font-weight: 700;
+  color: #FFFFFF;
+  letter-spacing: -1.2px;
+  line-height: 1;
+}
+
+.ios-amount-number.placeholder {
+  color: rgba(255, 255, 255, 0.35);
+}
+
+/* Multi-operation Expression Display (e.g. 100-10=€90) */
+.ios-formula-display {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: clamp(32px, 8vw, 48px);
+  font-weight: 700;
+  letter-spacing: -1px;
+  color: #FFFFFF;
+  line-height: 1.1;
+  word-break: break-all;
+}
+
+.ios-formula-text {
+  color: #FFFFFF;
+}
+
+.ios-equal-sign {
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0 2px;
+}
+
+.ios-result-text {
+  color: #32D74B;
+  font-weight: 800;
+}
+
+/* 3. Selector Pills Row */
+.ios-pills-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  width: 100%;
+}
+
+.ios-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #1C1C1E;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 100px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.ios-pill:active {
+  transform: scale(0.96);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.ios-pill.primary-pill {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  font-weight: 600;
+}
+
+.ios-type-indicator {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.ios-type-indicator.expense {
+  background: #FF453A;
+  box-shadow: 0 0 6px rgba(255, 69, 58, 0.6);
+}
+
+.ios-type-indicator.income {
+  background: #32D74B;
+  box-shadow: 0 0 6px rgba(50, 215, 75, 0.6);
+}
+
+.ios-pill-emoji {
+  font-size: 14px;
+}
+
+.ios-pill-arrow {
+  color: rgba(255, 255, 255, 0.45);
+  margin-left: 2px;
+}
+
+.ios-pill.note-pill.has-note {
+  border-color: rgba(10, 132, 255, 0.4);
+  background: rgba(10, 132, 255, 0.12);
+  color: var(--accent-blue, #0A84FF);
+}
+
+.ios-pill-clear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  opacity: 0.6;
+}
+
+.ios-pill-clear:hover {
+  opacity: 1;
+}
+
+/* Inline Note Field */
+.ios-inline-note-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 14px;
+  background: #1C1C1E;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 6px 10px;
+  box-sizing: border-box;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.type-toggle {
-  display: flex;
-  background: rgba(0, 0, 0, 0.4);
-  border-radius: var(--border-radius-md);
-  padding: 4px;
-  margin-bottom: 24px;
+.ios-inline-note-input {
+  flex: 1;
+  background: transparent !important;
+  border: none !important;
+  color: #FFFFFF !important;
+  font-size: 14px !important;
+  padding: 6px 4px !important;
+  outline: none !important;
 }
 
-.toggle-btn {
+.ios-inline-note-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--accent-blue, #0A84FF);
+  color: #FFFFFF;
+  border: none;
+  cursor: pointer;
+}
+
+/* 4. Action Button Section */
+.ios-action-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 14px;
+}
+
+.ios-action-subtext {
+  font-size: 12px;
+  color: rgba(235, 235, 245, 0.5);
+  margin-bottom: 6px;
+  font-weight: 400;
+  text-align: center;
+}
+
+.ios-submit-pill-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 50px;
+  border-radius: 100px;
+  border: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
+}
+
+.ios-submit-pill-btn.ready {
+  background: #FF453A;
+  color: #FFFFFF;
+}
+
+.ios-submit-pill-btn.ready.expense {
+  background: #FF453A;
+  color: #FFFFFF;
+}
+
+.ios-submit-pill-btn.ready.income {
+  background: #32D74B;
+  color: #000000;
+}
+
+.ios-submit-pill-btn.disabled {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+}
+
+.ios-submit-pill-btn:not(.disabled):hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.ios-submit-pill-btn:not(.disabled):active {
+  transform: scale(0.98);
+}
+
+.ios-submit-pill-btn.success {
+  background: #FFFFFF !important;
+  color: #000000 !important;
+  transform: scale(1.02);
+}
+
+.ios-btn-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 5. Built-In Keypad Grid */
+.ios-keypad-grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* Row 1: Operators (+, -, ×, ÷, =) */
+.ios-operators-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+}
+
+.ios-op-btn {
+  flex: 1;
+  height: 44px;
+  border-radius: 22px;
+  background: #1C1C1E;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 20px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.08s ease-out, background-color 0.12s ease-out;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  outline: none;
+  user-select: none;
+}
+
+@media (hover: hover) {
+  .ios-op-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.ios-op-btn:active {
+  background-color: rgba(255, 255, 255, 0.25);
+  transform: scale(0.95) translateZ(0);
+}
+
+.ios-op-btn.equals {
+  background: rgba(50, 215, 75, 0.15);
+  border-color: rgba(50, 215, 75, 0.3);
+  color: #32D74B;
+  font-weight: 700;
+}
+
+.ios-op-btn.equals:active {
+  background-color: #32D74B;
+  color: #000000;
+  transform: scale(0.95) translateZ(0);
+}
+
+/* Number Grid (1-9, ., 0, ⌫) */
+.ios-numbers-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px 14px;
+  width: 100%;
+}
+
+.ios-num-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 52px;
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #FFFFFF;
+  font-size: 28px;
+  font-weight: 400;
+  cursor: pointer;
+  border-radius: 20px;
+  transition: transform 0.08s ease-out, background-color 0.12s ease-out;
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  outline: none;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+@media (hover: hover) {
+  .ios-num-btn:hover {
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+}
+
+.ios-num-btn:active {
+  background-color: rgba(255, 255, 255, 0.18);
+  transform: scale(0.95) translateZ(0);
+}
+
+.ios-num-btn.ios-dot-btn {
+  font-weight: 700;
+  font-size: 34px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 8px; /* Lifts baseline period to exact vertical center */
+}
+
+.ios-num-btn.delete-btn {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.ios-num-btn.delete-btn:active {
+  color: #FFFFFF;
+  background-color: rgba(255, 255, 255, 0.18);
+  transform: scale(0.95) translateZ(0);
+}
+
+/* Modals & Sheets */
+.ios-sheet {
+  width: 100%;
+  max-width: 440px;
+  background: #1C1C1E !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 24px !important;
+  padding: 20px 22px !important;
+  margin: auto;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.6);
+  animation: sheetPop 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sheetPop {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.ios-sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.ios-sheet-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #FFFFFF;
+}
+
+.ios-close-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  padding: 0;
+}
+
+.ios-close-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+}
+
+/* Category Switcher in Sheet */
+.ios-sheet-type-toggle {
+  display: flex;
+  background: rgba(0, 0, 0, 0.4);
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+}
+
+.ios-sheet-toggle-btn {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
+  padding: 10px;
   background: transparent;
   border: none;
-  color: var(--text-secondary);
-  padding: 12px;
-  border-radius: var(--border-radius-sm);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.toggle-btn.active {
-  color: white;
+.ios-sheet-toggle-btn.active.expense {
+  background: rgba(255, 69, 58, 0.25);
+  color: #FF453A;
 }
 
-.toggle-btn.active.expense {
-  background: rgba(255, 69, 58, 0.2);
-  color: var(--accent-red);
+.ios-sheet-toggle-btn.active.income {
+  background: rgba(50, 215, 75, 0.25);
+  color: #32D74B;
 }
 
-.toggle-btn.active.income {
-  background: rgba(50, 215, 75, 0.2);
-  color: var(--accent-color);
+.ios-sheet-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
-.transaction-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.input-group label {
-  font-size: 13px;
-  color: var(--text-secondary);
-  font-weight: 500;
-}
-
-.input-group input, .input-group select {
-  background: var(--bg-primary);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: white;
-  padding: 14px 16px;
-  border-radius: var(--border-radius-sm);
-  font-size: 16px;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.input-group input:focus, .input-group select:focus {
-  border-color: var(--accent-blue);
-}
-
-.amount-input-wrapper {
-  position: relative;
+.ios-cat-card {
   display: flex;
   align-items: center;
-}
-
-.currency-symbol {
-  position: absolute;
-  left: 16px;
-  color: var(--text-secondary);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.amount-input-wrapper input {
-  width: 100%;
-  padding-left: 80px;
-  font-size: 20px;
-  font-weight: 600;
-}
-
-.submit-btn {
-  margin-top: 10px;
-  background: var(--accent-blue);
-  color: white;
-  border: none;
-  padding: 16px;
-  border-radius: var(--border-radius-md);
-  font-size: 16px;
-  font-weight: 600;
+  gap: 10px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: #FFFFFF;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all 0.15s ease;
+  text-align: left;
 }
 
-.submit-btn:active {
-  opacity: 0.8;
+.ios-cat-card:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
+.ios-cat-card.active {
+  background: rgba(10, 132, 255, 0.15);
+  border-color: var(--accent-blue, #0A84FF);
+  color: #FFFFFF;
+}
+
+.ios-cat-emoji {
+  font-size: 18px;
+}
+
+.ios-cat-name {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ios-cat-check {
+  color: var(--accent-blue, #0A84FF);
+}
+
+/* Account Options List */
+.ios-accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.ios-account-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  color: #FFFFFF;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.ios-account-option:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ios-account-option.active {
+  border-color: var(--accent-blue, #0A84FF);
+  background: rgba(10, 132, 255, 0.12);
+}
+
+.ios-acc-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.ios-acc-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.ios-acc-info {
+  flex: 1;
+}
+
+.ios-acc-info h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ios-acc-info p {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: rgba(235, 235, 245, 0.6);
+}
+
+/* Date Shortcuts */
+.ios-date-shortcuts {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.ios-shortcut-btn {
+  flex: 1;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ios-shortcut-btn.active, .ios-shortcut-btn:hover {
+  background: var(--accent-indigo, #5E5CE6);
+  border-color: var(--accent-indigo, #5E5CE6);
+}
+
+/* Time Picker Component Styling */
 .time-selector-btn {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 12px;
   width: 100%;
-  padding: 14px 16px;
-  background: var(--bg-primary);
-  border: 1px solid rgba(128, 128, 128, 0.2);
-  border-radius: var(--border-radius-sm);
-  transition: border-color 0.2s;
-  cursor: pointer;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  color: #FFFFFF;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
 }
 
 .time-selector-btn:focus-within {
-  border-color: var(--accent-blue);
+  border-color: var(--accent-blue, #0A84FF);
+  background: rgba(255, 255, 255, 0.09);
 }
 
 .time-selector-btn input[type="time"] {
+  flex: 1;
   background: transparent !important;
   border: none !important;
-  color: var(--text-primary);
-  font-size: 16px;
-  font-family: inherit;
-  outline: none;
-  width: 100%;
+  color: #FFFFFF !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  font-family: inherit !important;
+  outline: none !important;
   padding: 0 !important;
+  margin: 0 !important;
   cursor: pointer;
 }
 
 .time-selector-btn input[type="time"]::-webkit-calendar-picker-indicator {
-  filter: invert(1);
-  opacity: 0.6;
   cursor: pointer;
+  filter: invert(1);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.time-selector-btn input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+body.light-theme .time-selector-btn {
+  background: var(--bg-tertiary);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+}
+
+body.light-theme .time-selector-btn input[type="time"] {
+  color: var(--text-primary) !important;
 }
 
 body.light-theme .time-selector-btn input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(0);
 }
 
-.datetime-group {
+/* Modal Submit / Done Button */
+.submit-btn {
   display: flex;
-  gap: 16px;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  background: var(--accent-indigo, #5E5CE6);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  outline: none;
+  box-sizing: border-box;
 }
 
-.datetime-group .input-group {
-  flex: 1;
+.submit-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
 }
 
-@media (max-width: 500px) {
-  .datetime-group {
-    flex-direction: column;
-    gap: 16px;
+.submit-btn:active {
+  transform: scale(0.98);
+}
+
+/* Small screen scaling to guarantee fitting on 100% of devices */
+@media (max-height: 720px) {
+  .ios-keypad-container {
+    padding: 10px 14px 14px;
+  }
+  .ios-keypad-header {
+    margin-bottom: 8px;
+  }
+  .ios-amount-display-section {
+    min-height: 52px;
+    margin-bottom: 8px;
+  }
+  .ios-pills-row {
+    margin-bottom: 10px;
+    gap: 6px;
+  }
+  .ios-pill {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .ios-action-section {
+    margin-bottom: 10px;
+  }
+  .ios-submit-pill-btn {
+    height: 46px;
+    font-size: 15px;
+  }
+  .ios-action-subtext {
+    margin-bottom: 4px;
+    font-size: 11px;
+  }
+  .ios-keypad-grid-wrapper {
+    gap: 6px;
+  }
+  .ios-op-btn {
+    height: 40px;
+    font-size: 18px;
+  }
+  .ios-numbers-grid {
+    gap: 4px 12px;
+  }
+  .ios-num-btn {
+    height: 46px;
+    font-size: 24px;
+  }
+  .ios-num-btn.ios-dot-btn {
+    font-size: 30px;
+    padding-bottom: 6px;
+  }
+}
+
+@media (max-height: 640px) {
+  .ios-keypad-container {
+    padding: 8px 12px 10px;
+  }
+  .ios-keypad-header {
+    margin-bottom: 6px;
+  }
+  .ios-circle-btn {
+    width: 36px;
+    height: 36px;
+  }
+  .ios-header-title {
+    font-size: 15px;
+  }
+  .ios-amount-display-section {
+    height: 44px;
+    min-height: 44px;
+    max-height: 44px;
+    margin-bottom: 6px;
+  }
+  .ios-amount-number {
+    font-size: 34px;
+  }
+  .ios-pills-row {
+    margin-bottom: 8px;
+    gap: 4px;
+  }
+  .ios-pill {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  .ios-action-section {
+    margin-bottom: 8px;
+  }
+  .ios-submit-pill-btn {
+    height: 42px;
+    font-size: 14px;
+  }
+  .ios-action-subtext {
+    display: none;
+  }
+  .ios-op-btn {
+    height: 36px;
+    font-size: 17px;
+  }
+  .ios-num-btn {
+    height: 40px;
+    font-size: 22px;
+  }
+  .ios-num-btn.ios-dot-btn {
+    font-size: 26px;
+    padding-bottom: 4px;
+  }
+}
+
+@media (max-width: 400px) {
+  .ios-keypad-container {
+    padding: 10px 14px 16px;
   }
   
-  .datetime-group .input-group {
-    width: 100%;
+  .ios-num-btn {
+    height: 48px;
+    font-size: 24px;
+  }
+  
+  .ios-num-btn.ios-dot-btn {
+    font-size: 30px;
+    padding-bottom: 6px;
+  }
+  
+  .ios-op-btn {
+    height: 42px;
+    font-size: 19px;
   }
 }

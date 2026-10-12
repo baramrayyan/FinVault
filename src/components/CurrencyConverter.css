@@ -8,16 +8,95 @@
 }
 
 .converter-card {
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
+}
+
+.currency-converter-container.modal-mode .converter-card {
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.input-group label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary, rgba(235, 235, 245, 0.6));
+}
+
+.input-group select {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg-tertiary, #2C2C2E);
+  color: var(--text-primary, #FFFFFF);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  outline: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22rgba(255%2C255%2C255%2C0.6)%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+  transition: border-color 0.2s;
+}
+
+.input-group select:focus {
+  border-color: var(--accent-blue, #0A84FF);
+}
+
+.input-group select option {
+  background: #1C1C1E;
+  color: #FFFFFF;
+}
+
+body.light-theme .input-group select {
+  background-color: var(--bg-tertiary, #E5E5EA);
+  border-color: rgba(0, 0, 0, 0.12);
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2214%22%20height%3D%2214%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22rgba(0%2C0%2C0%2C0.6)%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E");
+}
+
+body.light-theme .input-group select option {
+  background: #FFFFFF;
+  color: #000000;
+}
+
+.input-group input[type="number"] {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg-tertiary, #2C2C2E);
+  color: var(--text-primary, #FFFFFF);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  outline: none;
+  font-size: 16px;
+  font-weight: 600;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.input-group input[type="number"]:focus {
+  border-color: var(--accent-blue, #0A84FF);
 }
 
 .currency-selectors {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
 }
 
 .currency-selectors .input-group {
@@ -26,57 +105,75 @@
 }
 
 .swap-btn {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-light);
-  color: var(--text-primary);
-  width: 40px;
-  height: 40px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-primary, #FFFFFF);
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  margin-top: 24px; /* Align with inputs */
+  margin-top: 22px; /* Align with inputs */
   transition: all 0.2s;
 }
 
 .swap-btn:hover {
-  background: var(--bg-hover);
-  transform: scale(1.05);
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(1.06);
+}
+
+.swap-btn:active {
+  transform: scale(0.92);
 }
 
 .result-container {
-  background: rgba(58, 134, 255, 0.05);
-  border: 1px solid rgba(58, 134, 255, 0.2);
-  border-radius: 12px;
-  padding: 20px;
+  background: rgba(10, 132, 255, 0.08);
+  border: 1px solid rgba(10, 132, 255, 0.2);
+  border-radius: 14px;
+  padding: 16px;
   text-align: center;
-  margin-top: 8px;
+  margin-top: 4px;
 }
 
 .converted-value {
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 700;
-  color: var(--accent-blue);
-  margin-bottom: 8px;
+  color: var(--accent-blue, #0A84FF);
+  margin-bottom: 4px;
+  letter-spacing: -0.5px;
 }
 
 .currency-label {
-  font-size: 20px;
+  font-size: 18px;
   color: var(--text-secondary);
 }
 
 .exchange-rate-info {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
 .loading-rate {
   color: var(--text-secondary);
   font-style: italic;
+  font-size: 14px;
 }
 
 .apply-btn {
-  margin-top: 16px;
-  background: var(--accent-green, #32D74B);
+  margin-top: 4px;
+  background: var(--accent-blue, #0A84FF) !important;
+  color: #FFFFFF !important;
+  border-radius: 12px;
+  height: 48px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.apply-btn:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
 }
